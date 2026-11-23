@@ -1,0 +1,270 @@
+@import "tailwindcss";
+
+/* `dark:` targets the dark theme, set on <html data-theme> by the boot script in app/layout.tsx. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── Design tokens ───────────────────────────────────────────────
+   Values come from the Figma file (Home · Dark / Home · Light).
+   Components use the Tailwind names below, never raw hex values. */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #06142e;
+  --bg-deep: #030a18;
+  --surface: #0b1f42;
+  --surface-raised: #112b57;
+  --line: #1a3768;
+  --fg: #eaf2fc;
+  --fg-muted: #a3b8d6;
+  --fg-subtle: #7c93b5;
+  --accent: #5fd4f0;
+  --brand: #4db2ff;
+  --primary: #1570d6;
+  --glass: rgb(11 31 66 / 0.6);
+  --grid-line: rgb(95 212 240 / 0.035);
+  --glow: rgb(30 155 240 / 0.35);
+  --hero-from: #06142e;
+  --hero-to: #030a18;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f8fd;
+  --bg-deep: #e9f1fb;
+  --surface: #ffffff;
+  --surface-raised: #e8f0fa;
+  --line: #d6e2f0;
+  --fg: #0b1a3a;
+  --fg-muted: #3b5075;
+  --fg-subtle: #5e7396;
+  --accent: #0a85b8;
+  --brand: #1446e0;
+  --primary: #1446e0;
+  --glass: rgb(255 255 255 / 0.7);
+  --grid-line: rgb(20 70 224 / 0.04);
+  --glow: rgb(20 70 224 / 0.18);
+  --hero-from: #f4f8fd;
+  --hero-to: #e9f1fb;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-brand: var(--brand);
+  --color-primary: var(--primary);
+  --color-glass: var(--glass);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-urbanist), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-cousine), ui-monospace, monospace;
+
+  --animate-marquee: marquee var(--marquee-duration, 60s) linear infinite;
+  --animate-spin-slow: spin 18s linear infinite;
+  /* Fluid entrance for swapped content (service scenes). Figma "Smart animate" easing. */
+  --animate-scene-in: scene-in 450ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes scene-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg font-sans text-fg antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Utilities ────────────────────────────────────────────────── */
+@utility container-site {
+  @apply mx-auto w-full max-w-[1408px] px-5 sm:px-8 lg:px-16;
+}
+
+/* Faint blueprint grid used behind mock UI panels. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 25px 25px;
+}
+
+@utility text-gradient {
+  @apply bg-linear-to-r from-accent via-brand via-45% to-[#2f7bff] bg-clip-text text-transparent;
+}
+
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--fg);
+}
+
+/* Below-the-fold sections skip layout and paint until they near the viewport. */
+@utility defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+/* ── Scroll reveal ─────────────────────────────────────────────
+   Content animates in once as it scrolls into view (components/layout/ScrollReveal.tsx adds
+   `.is-inview`). Nothing is hidden unless the boot script in app/layout.tsx added
+   `html.reveal-ready` (JavaScript on, motion allowed), and a failsafe shows everything after
+   4 s if the observer never starts.
+   - `.reveal`               one element; optional data-reveal="clip | left | right | zoom"
+   - `[data-reveal-stagger]` each direct child in turn, 90 ms apart
+   - `.reveal-load`          plays on page load (heroes), delayed by `--d`
+   - `.reveal-load-stagger`  each direct child on page load, 90 ms apart
+   `--rd` adds an extra delay to `.reveal` and stagger groups. */
+@theme inline {
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.reveal-ready .reveal:not(.is-inview),
+html.reveal-ready [data-reveal-stagger]:not(.is-inview) > * {
+  opacity: 0;
+}
+
+html.reveal-ready:not(.reveal-armed) .reveal:not(.is-inview),
+html.reveal-ready:not(.reveal-armed) [data-reveal-stagger]:not(.is-inview) > * {
+  animation: reveal-failsafe 0s 4s forwards;
+}
+
+.reveal.is-inview {
+  animation: reveal-up 0.9s var(--rd, 0s) var(--ease-reveal) backwards;
+}
+
+.reveal[data-reveal="clip"].is-inview {
+  animation-name: reveal-clip;
+  animation-duration: 1.1s;
+}
+
+.reveal[data-reveal="left"].is-inview {
+  animation-name: reveal-left;
+  animation-duration: 1s;
+}
+
+.reveal[data-reveal="right"].is-inview {
+  animation-name: reveal-right;
+  animation-duration: 1s;
+}
+
+.reveal[data-reveal="zoom"].is-inview {
+  animation-name: reveal-zoom;
+  animation-duration: 1.2s;
+}
+
+[data-reveal-stagger].is-inview > * {
+  animation: reveal-up 0.85s calc(var(--rd, 0s) + var(--i, 0) * 90ms) var(--ease-reveal) backwards;
+}
+
+html.reveal-ready .reveal-load,
+html.reveal-ready .reveal-load-stagger > * {
+  animation: reveal-up 0.9s var(--d, 0s) var(--ease-reveal) backwards;
+}
+
+/* Pure CSS, so above-the-fold content never waits for JavaScript. */
+.reveal-load-stagger > :nth-child(2) { --d: 90ms; }
+.reveal-load-stagger > :nth-child(3) { --d: 180ms; }
+.reveal-load-stagger > :nth-child(4) { --d: 270ms; }
+.reveal-load-stagger > :nth-child(5) { --d: 360ms; }
+.reveal-load-stagger > :nth-child(n + 6) { --d: 450ms; }
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+@keyframes reveal-clip {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(36px);
+  }
+}
+
+@keyframes reveal-left {
+  from {
+    opacity: 0;
+    transform: translateX(-56px);
+  }
+}
+
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    transform: translateX(56px);
+  }
+}
+
+@keyframes reveal-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes reveal-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Reading-progress line on the left edge (CSS scroll timeline, no JavaScript). */
+@utility scroll-progress {
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes scroll-progress {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* The marquee track holds its items twice; pausing stops it on the current frame. */
+.marquee-paused .animate-marquee {
+  animation-play-state: paused;
+}

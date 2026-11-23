@@ -1,0 +1,41 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="1830.8" height="1182.8" viewBox="0 0 1830.8 1182.8" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Wave">
+<g id="Wave body" filter="url(#filter0_f_0_1916)">
+<path d="M73 677.8C548.2 613 893.8 613 1163.8 559C1412.2 510.4 1541.8 375.4 1757.8 321.4V1109.8C1379.8 1109.8 1174.6 850.6 850.6 818.2C569.8 791.2 353.8 818.2 73 829V677.8Z" fill="url(#paint0_linear_0_1916)"/>
+</g>
+<g id="Hot glow" opacity="0.9" filter="url(#filter1_f_0_1916)">
+<rect x="1109.8" y="73" width="648" height="972" fill="url(#paint1_radial_0_1916)"/>
+</g>
+<g id="Crest" opacity="0.55" filter="url(#filter2_f_0_1916)">
+<path d="M73 677.8C548.2 613 893.8 613 1163.8 559C1412.2 510.4 1541.8 375.4 1757.8 321.4" stroke-width="2.16" stroke-linecap="round" stroke="white" stroke-opacity="0.6"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_f_0_1916" x="-7.62939e-06" y="248.4" width="1830.8" height="934.4" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="36.5" result="effect1_foregroundBlur_0_1916"/>
+</filter>
+<filter id="filter1_f_0_1916" x="1036.8" y="0" width="794" height="1118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="36.5" result="effect1_foregroundBlur_0_1916"/>
+</filter>
+<filter id="filter2_f_0_1916" x="65.4199" y="313.82" width="1699.96" height="371.56" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="3.25" result="effect1_foregroundBlur_0_1916"/>
+</filter>
+<linearGradient id="paint0_linear_0_1916" x1="73" y1="715.6" x2="1757.8" y2="715.6" gradientUnits="userSpaceOnUse">
+<stop stop-color="#0A1F7A"/>
+<stop offset="0.45" stop-color="#1446E0"/>
+<stop offset="0.78" stop-color="#3F80FF"/>
+<stop offset="1" stop-color="#E4F0FF"/>
+</linearGradient>
+<radialGradient id="paint1_radial_0_1916" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1757.8 481.24) scale(324 486)">
+<stop stop-color="#E4F0FF"/>
+<stop offset="0.5" stop-color="#3F80FF" stop-opacity="0.5"/>
+<stop offset="1" stop-color="#3F80FF" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>

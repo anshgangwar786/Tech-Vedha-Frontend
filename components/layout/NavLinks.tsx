@@ -1,0 +1,29 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { HEADER_LINKS } from "@/lib/site";
+import { cx } from "@/lib/cx";
+
+/** Desktop header links. The link for the current page gets a small accent dot (Figma "Active dot"). */
+export default function NavLinks() {
+  const pathname = usePathname();
+
+  return HEADER_LINKS.map((link) => {
+    const current = link.href === pathname;
+    return (
+      <Link
+        key={link.href}
+        href={link.href}
+        aria-current={current ? "page" : undefined}
+        className={cx(
+          "relative flex h-10 items-center px-3.5 text-sm font-medium transition-colors hover:text-fg",
+          current ? "text-fg" : "text-fg-muted",
+        )}
+      >
+        {link.label}
+        {current && <span aria-hidden className="absolute bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand" />}
+      </Link>
+    );
+  });
+}
