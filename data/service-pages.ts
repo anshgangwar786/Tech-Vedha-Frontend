@@ -117,7 +117,6 @@ export type ServicePage = {
     highlights: string[];
     groups: TechGroup[];
   };
-  blueprint: { title: string[]; intro: string };
   faq: { title: string; items: { question: string; answer: string }[] };
 };
 
@@ -374,10 +373,6 @@ const PAGES: ServicePage[] = [
           ],
         },
       ],
-    },
-    blueprint: {
-      title: ["Your app is one", "wing of four."],
-      intro: "The same team can plan the space it serves, run the software behind it and bring customers to it.",
     },
     faq: {
       title: "App questions, answered.",
@@ -677,11 +672,6 @@ const PAGES: ServicePage[] = [
           ],
         },
       ],
-    },
-    blueprint: {
-      title: ["Marketing is one", "wing of four."],
-      intro:
-        "The same team can plan the space you sell from, build the app and software behind it, and keep it all secure.",
     },
     faq: {
       title: "Digital marketing questions, answered.",
