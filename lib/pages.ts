@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { SERVICE_PAGES } from "@/data/service-pages";
+import type { ResolvedServicePage } from "@/data/service-pages";
 
 /**
  * Every public page of the site, in one place. Drives both /sitemap.xml (for search engines)
@@ -38,13 +38,15 @@ export const MAIN_PAGES: SitePage[] = [
   },
 ];
 
-export const SERVICE_SITE_PAGES: SitePage[] = SERVICE_PAGES.map((page) => ({
-  title: page.service.title,
-  path: `/services/${page.service.slug}`,
-  description: page.service.summary,
-  changeFrequency: "monthly",
-  priority: 0.8,
-}));
+/** Sitemap entries for the service pages (live titles via getServicePages(), or the bundled ones). */
+export const toServiceSitePages = (pages: ResolvedServicePage[]): SitePage[] =>
+  pages.map((page) => ({
+    title: page.service.title,
+    path: `/services/${page.service.slug}`,
+    description: page.service.summary,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
 
 export const SITE_MAP_PAGE: SitePage = {
   title: "Sitemap",
@@ -53,8 +55,6 @@ export const SITE_MAP_PAGE: SitePage = {
   changeFrequency: "monthly",
   priority: 0.3,
 };
-
-export const ALL_PAGES: SitePage[] = [...MAIN_PAGES, ...SERVICE_SITE_PAGES, SITE_MAP_PAGE];
 
 /** Homepage sections worth jumping to directly (ids live in components/home). */
 export const HOME_SECTIONS: { title: string; href: string }[] = [

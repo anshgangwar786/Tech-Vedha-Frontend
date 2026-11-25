@@ -1,4 +1,9 @@
-/** Homepage copy. Service data lives in data/services.ts. */
+/**
+ * Homepage copy. Service data lives in data/services.ts.
+ *
+ * HOME_CONTENT (bottom of this file) groups everything by page section, top to bottom, exactly as the homepage
+ * renders it. It is the admin editor's schema: each top-level key becomes one card in Dashboard → Homepage.
+ */
 
 export const SECURITY_LAYERS = [
   {
@@ -263,3 +268,151 @@ export const FAQS = [
 ];
 
 export const PROMISES = ["One team", "One timeline", "One invoice", "One point of contact"];
+
+/** Replaces "{count}" in admin-edited copy with the number of services in words ("Four"). */
+export const withCount = (text: string, count: string) => text.replaceAll("{count}", count);
+
+/** A button: visible label and where it goes ("/#contact", "/about", "https://…"). */
+export type CtaLink = { label: string; href: string };
+
+export const HERO = {
+  eyebrow: "IT solutions · India and abroad",
+  titleLead: "Build for",
+  titleAccent: "Tomorrow.",
+  intro: "Design, software, apps, security and marketing — one partner instead of four vendors.",
+  primaryCta: { label: "Start a project", href: "/#contact" },
+  secondaryCta: { label: "Explore services", href: "/#services" },
+  strip: "Digital Marketing · App Development · CAD Design · Software and Security",
+  ringText: "TECH VEDHA • BUILD FOR TOMORROW • ",
+};
+
+export const BLUEPRINT = {
+  eyebrow: "The digital blueprint",
+  title: ["Drawn as a blueprint.", "Built as one."],
+  intro: "{count} wings, assembled from the foundation up, so every part fits the next.",
+  tagline: "ONE STRUCTURE · ONE TEAM",
+};
+
+export const SERVICES_SECTION = {
+  title: ["{count} wings.", "One blueprint."],
+  intro: "{count} services engineered as a single, connected system — so nothing gets lost between vendors.",
+  exploreLabel: "Explore",
+};
+
+export const WHY = {
+  eyebrow: "Why Tech Vedha",
+  heading: "All of it, from one partner.",
+  text: "We design your space, build its software, launch its app, secure its data and market it — across India and abroad.",
+  primaryCta: { label: "Start a project", href: "/#contact" },
+  secondaryCta: { label: "How we work", href: "/#process" },
+  promises: PROMISES,
+};
+
+export const SECURITY = {
+  eyebrow: "Security",
+  title: ["Security in", "every layer."],
+  intro: "Every build ships with protection designed in, not bolted on — four layers, working together.",
+  layers: SECURITY_LAYERS.map((layer) => ({ ...layer, points: [...layer.points] })),
+};
+
+export const PROCESS = {
+  eyebrow: "Process",
+  title: ["From idea to launch,", "and beyond."],
+  intro: "Six clear steps, with something you can review at every one.",
+  exampleLabel: "Example project · Showroom app",
+  /** Phone and tablet buttons under the step card. */
+  nextLabel: "Next",
+  restartLabel: "Start over",
+  /** Small counter on each step (desktop). {n} = step number, {total} = number of steps. */
+  stepCounter: "Step {n} of {total}",
+  steps: PROCESS_STEPS,
+  banner: {
+    heading: "Ready for step one?",
+    text: "Tell us about your project and we'll start with a discovery call.",
+    primaryCta: { label: "Start a project", href: "/#contact" },
+  },
+};
+
+export const PILLARS = {
+  eyebrow: "Why Tech Vedha",
+  title: ["Built on four", "pillars of trust."],
+  intro: "Four promises behind every project.",
+  clientCentric: {
+    brief: "We need billing for our [three stores], with [staff logins] and [live stock].",
+    briefCredit: "— your brief",
+    title: "Client-centric",
+    text: "Built around how your business works — no templates.",
+    exampleLabel: "Example brief",
+    features: ["GST billing", "Multi-store setup", "Role-based logins", "Real-time stock sync"],
+  },
+  quality: {
+    gates: QUALITY_GATES,
+    badge: "Ready to launch",
+    title: "Quality and reliability",
+    text: "Every release passes six gates before it ships.",
+  },
+  scalable: {
+    stages: ["1 store", "City", "India", "Abroad"],
+    title: "Scalable",
+    text: "Grows from one store to many countries.",
+  },
+  secure: {
+    title: "Secure and compliant",
+    text: "Your data is protected in every layer.",
+  },
+};
+
+export const STORIES_SECTION = {
+  eyebrow: "Client stories",
+  title: ["In our clients'", "own words."],
+  showMore: "Show more stories",
+  note: "Sample copy for review — replace with approved client stories, names and photos before launch.",
+  items: STORIES,
+};
+
+export const FAQ_SECTION = {
+  eyebrow: "FAQ",
+  title: ["Questions,", "answered."],
+  helpTitle: "Still unsure?",
+  helpText: "Chat with us on WhatsApp →",
+  items: FAQS,
+};
+
+export const CONTACT_SECTION = {
+  eyebrow: "Let's talk",
+  heading: "Let's build your success together.",
+  intro: "Tell us what you need. We'll reply with a plan.",
+  emailLabel: "Email",
+  whatsappLabel: "WhatsApp",
+  whatsappValue: "Chat with us",
+  /** The enquiry form beside it (also on the About and service pages). */
+  form: {
+    nameLabel: "Name",
+    phoneLabel: "Phone / WhatsApp",
+    phonePlaceholder: "+91 98765 43210",
+    emailLabel: "Email",
+    serviceLabel: "Service",
+    servicePlaceholder: "Select a service",
+    messageLabel: "Message",
+    messagePlaceholder: "A few lines about your project",
+    submitLabel: "Send enquiry",
+  },
+};
+
+export type EnquiryFormCopy = typeof CONTACT_SECTION.form;
+
+/** Every homepage section, in page order (top to bottom). Keys must match the admin's `home` sections. */
+export const HOME_CONTENT = {
+  hero: HERO,
+  blueprint: BLUEPRINT,
+  services: SERVICES_SECTION,
+  why: WHY,
+  security: SECURITY,
+  process: PROCESS,
+  pillars: PILLARS,
+  stories: STORIES_SECTION,
+  faq: FAQ_SECTION,
+  contact: CONTACT_SECTION,
+};
+
+export type HomeContent = typeof HOME_CONTENT;

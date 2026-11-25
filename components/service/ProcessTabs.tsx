@@ -28,8 +28,8 @@ export default function ProcessTabs({ heading, tabs, panels }: ProcessTabsProps)
   };
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[513fr_695fr] lg:gap-[72px]">
-      <div className="flex flex-col gap-[22px] lg:sticky lg:top-28 lg:self-start">
+    <div className="grid gap-8 sm:gap-12 lg:grid-cols-[513fr_695fr] lg:gap-[72px]">
+      <div className="flex flex-col gap-5 sm:gap-[22px] lg:sticky lg:top-28 lg:self-start">
         {heading}
         <div role="tablist" aria-orientation="vertical" aria-label="Project type" className="flex flex-col gap-2 pt-2">
           {tabs.map((tab, index) => {

@@ -52,12 +52,12 @@ export default function StepAccordion({ steps }: StepAccordionProps) {
                 aria-controls={bodyId}
                 onClick={() => setOpen(index)}
                 className={cx(
-                  "flex min-h-[72px] w-full items-center gap-5 px-6 py-4 text-left",
+                  "flex min-h-16 w-full items-center gap-4 px-5 py-4 text-left sm:min-h-[72px] sm:gap-5 sm:px-6",
                   isOpen ? "cursor-default" : "cursor-pointer",
                 )}
               >
-                <span className={cx(NUMBER, "w-10 text-[28px]")}>{stepNumber(index)}</span>
-                <span className="font-display text-[22px] text-fg">{step.title}</span>
+                <span className={cx(NUMBER, "w-9 shrink-0 text-[26px] sm:w-10 sm:text-[28px]")}>{stepNumber(index)}</span>
+                <span className="font-display text-[22px] text-fg max-sm:text-xl">{step.title}</span>
                 <span
                   aria-hidden
                   className="ml-auto grid size-9 shrink-0 place-items-center rounded-full border border-line text-fg-muted transition-colors group-hover:text-fg"
@@ -78,7 +78,7 @@ export default function StepAccordion({ steps }: StepAccordionProps) {
                 ref={(node) => {
                   bodyRefs.current[index] = node;
                 }}
-                className="px-6 pb-6 sm:pl-[84px]"
+                className="px-5 pb-5 sm:px-6 sm:pb-6 sm:pl-[84px]"
               >
                 <p className="max-w-[520px] text-base leading-[1.6] text-fg-muted">{step.summary}</p>
                 <ul aria-label="Deliverables" className="mt-3.5 flex flex-wrap gap-2">

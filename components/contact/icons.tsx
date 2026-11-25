@@ -39,7 +39,9 @@ export type ContactGlyphName = keyof typeof GLYPHS;
 
 /** Size it with a `size-*` class; colour comes from `text-*`. */
 export function Glyph({ name, className }: { name: ContactGlyphName; className?: string }) {
-  const Icon = GLYPHS[name];
+  // An icon name the site doesn't know (e.g. mistyped in the admin) shows no icon instead of breaking the page.
+  const Icon = Object.prototype.hasOwnProperty.call(GLYPHS, name) ? GLYPHS[name] : null;
+  if (!Icon) return null;
   return <Icon aria-hidden strokeWidth={1.75} className={cx("shrink-0", className)} />;
 }
 

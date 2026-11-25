@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import ButtonLink from "@/components/ui/ButtonLink";
+import { ENQUIRY_SENT, type EnquirySentCopy } from "@/lib/site";
 
 /** How long the confirmation stays up before the form is cleared for a new enquiry. */
 const RESET_AFTER_MS = 30_000;
@@ -44,7 +45,16 @@ export function useEnquirySent(onReset?: () => void) {
 }
 
 /** "Enquiry sent" overlay (Figma: Overlay · Enquiry sent · Dark / Light). */
-export default function EnquirySent({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function EnquirySent({
+  open,
+  onClose,
+  copy = ENQUIRY_SENT,
+}: {
+  open: boolean;
+  onClose: () => void;
+  /** Admin-edited text (Site & menus → Enquiry sent); bundled copy when omitted. */
+  copy?: EnquirySentCopy;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -73,15 +83,14 @@ export default function EnquirySent({ open, onClose }: { open: boolean; onClose:
       <div className="flex flex-col items-center gap-5 rounded-[28px] border border-line bg-surface px-6 pt-10 pb-9 text-center shadow-[0_40px_80px_-20px_rgb(3_10_23/0.25)] sm:px-10 dark:shadow-[0_40px_80px_-20px_rgb(3_10_23/0.6)]">
         <Image src="/icons/success.svg" alt="" width={64} height={64} className="size-16" />
         <h2 id="enquiry-sent-title" className="font-display text-[40px] leading-tight font-light text-fg">
-          Enquiry sent
+          {copy.title}
         </h2>
         <p id="enquiry-sent-body" className="text-base leading-[1.55] text-fg-muted">
-          Thank you. One person from our team will reply with next steps, and a written plan follows the discovery
-          call.
+          {copy.text}
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <ButtonLink href="/" className="shadow-none">
-            Back to home
+            {copy.homeLabel}
           </ButtonLink>
           <button
             type="button"
@@ -89,7 +98,7 @@ export default function EnquirySent({ open, onClose }: { open: boolean; onClose:
             onClick={onClose}
             className="inline-flex h-12 items-center justify-center rounded-full border border-line px-6 text-[15px] font-medium text-fg transition duration-200 hover:border-brand hover:bg-glass"
           >
-            Close
+            {copy.closeLabel}
           </button>
         </div>
       </div>

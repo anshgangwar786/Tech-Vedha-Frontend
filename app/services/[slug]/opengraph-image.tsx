@@ -1,18 +1,18 @@
 import { ImageResponse } from "next/og";
-import { SERVICE_PAGES, getServicePage } from "@/data/service-pages";
+import { getServicePage, getServicePageSlugs, getSite } from "@/server/content";
 import { SITE } from "@/lib/site";
 
 export const alt = `${SITE.name} service`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export function generateStaticParams() {
-  return SERVICE_PAGES.map((page) => ({ slug: page.service.slug }));
+export async function generateStaticParams() {
+  return (await getServicePageSlugs()).map((slug) => ({ slug }));
 }
 
 /** Per-service social share card, generated at build time in the same style as the homepage card. */
 export default async function OpenGraphImage({ params }: { params: Promise<{ slug: string }> }) {
-  const page = getServicePage((await params).slug);
+  const [page, { SITE: site, WORDMARK }] = await Promise.all([getServicePage((await params).slug), getSite()]);
   const service = page?.service;
 
   return new ImageResponse(
@@ -31,14 +31,14 @@ export default async function OpenGraphImage({ params }: { params: Promise<{ slu
         }}
       >
         <div style={{ display: "flex", fontSize: 30, fontWeight: 700, letterSpacing: 6 }}>
-          TECH&nbsp;<span style={{ color: "#4db2ff" }}>VEDHA</span>
+          {WORDMARK[0]}&nbsp;<span style={{ color: "#4db2ff" }}>{WORDMARK[1]}</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 26, letterSpacing: 4, color: "#5fd4f0" }}>
-            {service ? `${service.number} · ${service.wing.toUpperCase()}` : SITE.tagline}
+            {service ? `${service.number} · ${service.wing.toUpperCase()}` : site.tagline}
           </div>
           <div style={{ marginTop: 20, fontSize: 96, lineHeight: 1, letterSpacing: -3 }}>
-            {service?.title ?? SITE.name}
+            {service?.title ?? site.name}
           </div>
           {page && (
             <div style={{ marginTop: 28, fontSize: 32, color: "#a3b8d6" }}>

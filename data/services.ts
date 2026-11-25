@@ -1,7 +1,12 @@
+import { addedServiceSlugs } from "@/lib/content/serviceSlugs";
+
+/** The four built-in services. Code is tied to these ids (pages, scenes, About loop steps). */
 export type ServiceId = "marketing" | "apps" | "cad" | "software";
 
-export type Service = {
-  id: ServiceId;
+/** A catalogue entry as edited in the admin (Service catalogue → Services). */
+export type CatalogueService = {
+  /** A built-in ServiceId, or the slug of a service added in the admin. Used in anchors: /#service-<id>. */
+  id: string;
   /** URL segment of the service page: /services/<slug>. */
   slug: string;
   number: string;
@@ -13,21 +18,29 @@ export type Service = {
   offerings: { title: string; detail: string }[];
 };
 
-/** Services whose page content exists in data/service-pages.ts. Add an id here when its page is ready. */
-const LIVE_PAGES: ReadonlySet<ServiceId> = new Set(["marketing", "apps"]);
+/** A service as the site shows it: its catalogue entry, and whether it has its own page at /services/<slug>. */
+export type Service = CatalogueService & { page: boolean };
 
-/** True once the service has its own page at /services/<slug>. */
-export function hasServicePage(id: ServiceId): boolean {
-  return LIVE_PAGES.has(id);
+/** Built-in services whose page content exists in data/service-pages.ts. Add an id here when its page is ready. */
+const LIVE_PAGES: ReadonlySet<string> = new Set<ServiceId>(["marketing", "apps"]);
+
+/** True once the service has its own page at /services/<slug> (a built-in page, or an added service's page). */
+export function hasServicePage(service: Service): boolean {
+  return service.page;
 }
 
-/** Where a service links to: its own page when built, otherwise its card on the homepage. */
-export function serviceHref(id: ServiceId): string {
-  const service = SERVICES.find((item) => item.id === id);
-  return service && hasServicePage(id) ? `/services/${service.slug}` : `/#service-${id}`;
+/** True for the four built-in services (as opposed to ones added in the admin). */
+export function isBuiltInService(id: string): id is ServiceId {
+  return BUILT_IN_IDS.has(id);
 }
 
-export const SERVICES: Service[] = [
+/** Where a service links to: its own page when it has one, otherwise its card on the homepage. */
+export function serviceHref(service: Service): string {
+  return service.page ? `/services/${service.slug}` : `/#service-${service.id}`;
+}
+
+/** Bundled catalogue (the admin's defaults). Pages read the live one via server/content.ts → getServices(). */
+export const SERVICE_CATALOGUE: CatalogueService[] = [
   {
     id: "marketing",
     slug: "digital-marketing",
@@ -93,3 +106,74 @@ export const SERVICES: Service[] = [
     ],
   },
 ];
+
+const BUILT_IN_IDS: ReadonlySet<string> = new Set(SERVICE_CATALOGUE.map((service) => service.id));
+
+/** A service added in the admin (Service catalogue → Added services). Shown after the built-in four. */
+export type AddedService = {
+  title: string;
+  /** Anchor on the homepage (/#service-<slug>). Made from the title when left empty. */
+  slug: string;
+  wing: string;
+  summary: string;
+  short: string[];
+  offerings: { title: string; detail: string }[];
+  /** Has its own page at /services/<slug>, written in the admin under Services → <title>. */
+  page: boolean;
+};
+
+/**
+ * Item shape of the admin's "Added services" list, which is empty by default (lib/content/mergeContent.ts uses it
+ * to read saved items, the admin editor to create new ones). Blank values: an unfilled field never reaches the site.
+ */
+export const ADDED_SERVICE_TEMPLATE: AddedService = {
+  title: "",
+  slug: "",
+  wing: "",
+  summary: "",
+  short: [""],
+  offerings: [{ title: "", detail: "" }],
+  page: false,
+};
+
+/**
+ * The full catalogue: the built-in services, then the ones added in the admin. Added services without a title are
+ * skipped (a half-filled draft never shows up); each gets a unique slug (lib/content/serviceSlugs.ts, shared with the
+ * admin), the next number and fallbacks for empty fields.
+ */
+export function withAddedServices(builtIn: CatalogueService[], added: AddedService[]): Service[] {
+  const slugs = addedServiceSlugs(
+    builtIn.flatMap((service) => [service.id, service.slug]),
+    added,
+  );
+  const extra: Service[] = [];
+  added.forEach((item, index) => {
+    const slug = slugs[index];
+    if (!slug) return;
+    const title = item.title.trim();
+    const short = item.short.map((word) => word.trim()).filter(Boolean);
+    extra.push({
+      id: slug,
+      slug,
+      number: String(builtIn.length + extra.length + 1).padStart(2, "0"),
+      wing: item.wing.trim() || "New service",
+      title,
+      summary: item.summary.trim(),
+      short: short.length ? short : [title],
+      offerings: item.offerings
+        .map((offering) => ({ title: offering.title.trim(), detail: offering.detail.trim() }))
+        .filter((offering) => offering.title),
+      page: item.page,
+    });
+  });
+  return [...builtIn.map((service) => ({ ...service, page: LIVE_PAGES.has(service.id) })), ...extra];
+}
+
+/** The bundled catalogue as the site shows it (fallback when the admin is unreachable). */
+export const SERVICES: Service[] = withAddedServices(SERVICE_CATALOGUE, []);
+
+/** "Four", "Five" … for copy that counts the services ("Four wings."). Digits past twelve. */
+export function countWord(count: number): string {
+  const words = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+  return words[count] ?? String(count);
+}

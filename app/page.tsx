@@ -10,17 +10,20 @@ import Testimonials from "@/components/home/Testimonials";
 import WhyTechVedha from "@/components/home/WhyTechVedha";
 import Faq from "@/components/ui/Faq";
 import JsonLd from "@/components/ui/JsonLd";
-import { FAQS } from "@/data/home";
 import { faqJsonLd } from "@/lib/seo";
+import { getHome } from "@/server/content";
+import { PageSeo } from "@/components/seo/SeoTags";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { FAQS } = await getHome();
   return (
     <>
       <JsonLd data={[faqJsonLd(FAQS)]} />
+      <PageSeo path={"/"} />
       <Hero />
       <Blueprint />
       <Services />

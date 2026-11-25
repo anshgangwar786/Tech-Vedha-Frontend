@@ -2,10 +2,10 @@ import Image from "next/image";
 import CtaButtons from "@/components/ui/CtaButtons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import BadgeRing from "@/components/home/BadgeRing";
+import { getHome } from "@/server/content";
 
-const HERO_STRIP = "Digital Marketing · App Development · CAD Design · Software and Security";
-
-export default function Hero() {
+export default async function Hero() {
+  const { hero } = await getHome();
   return (
     <section
       aria-labelledby="hero-title"
@@ -19,26 +19,27 @@ export default function Hero() {
 
       <div className="container-site flex min-h-[max(640px,100svh)] flex-col pt-[117px] lg:min-h-[900px]">
         <div className="reveal-load-stagger flex flex-1 flex-col justify-center gap-[27px] py-9">
-          <Eyebrow variant="pill">IT solutions · India and abroad</Eyebrow>
+          <Eyebrow variant="pill">{hero.eyebrow}</Eyebrow>
           <h1
             id="hero-title"
             className="font-display text-[clamp(3.5rem,8.2vw,7.38rem)] leading-[0.98] font-normal tracking-[-0.035em] text-fg dark:text-white"
           >
-            Build for <span className="block text-brand dark:text-white">Tomorrow.</span>
+            {hero.titleLead} <span className="block text-brand dark:text-white">{hero.titleAccent}</span>
           </h1>
           <p className="max-w-[432px] text-lg leading-[1.6] text-fg-muted">
-            Design, software, apps, security and marketing — one partner instead of four vendors.
+            {hero.intro}
           </p>
           <CtaButtons
-            href="/#contact"
-            secondary={{ href: "/#services", label: "Explore services", variant: "glass" }}
+            href={hero.primaryCta.href}
+            label={hero.primaryCta.label}
+            secondary={{ ...hero.secondaryCta, variant: "glass" }}
             className="pt-1"
           />
         </div>
 
         <div className="reveal-load flex items-center justify-between gap-6 border-t border-fg/15 pt-5 pb-9 [--d:500ms]">
-          <p className="text-sm leading-[1.6] text-fg-muted">{HERO_STRIP}</p>
-          <BadgeRing />
+          <p className="text-sm leading-[1.6] text-fg-muted">{hero.strip}</p>
+          <BadgeRing text={hero.ringText} />
         </div>
       </div>
     </section>

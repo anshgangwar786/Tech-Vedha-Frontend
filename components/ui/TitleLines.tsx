@@ -1,9 +1,10 @@
-/** Title copy where each entry renders on its own line at desktop widths. */
+/** Title copy where each entry renders on its own line at desktop widths. Blank lines (e.g. cleared in the admin) are skipped. */
 export default function TitleLines({ lines }: { lines: string[] }) {
-  return lines.map((line, index) => (
-    <span key={line} className="md:block">
+  const shown = lines.filter((line) => line.trim());
+  return shown.map((line, index) => (
+    <span key={index} className="md:block">
       {line}
-      {index < lines.length - 1 && " "}
+      {index < shown.length - 1 && " "}
     </span>
   ));
 }

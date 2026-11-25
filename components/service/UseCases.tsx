@@ -12,11 +12,11 @@ export default function UseCases({ page }: UseCasesProps) {
   return (
     <section aria-labelledby="use-cases-title" className={cx("defer-render bg-bg", SECTION)}>
       <div className="container-site">
-        <SectionHeader id="use-cases-title" eyebrow="Who it's for" title={useCases.title} intro={useCases.intro} light />
+        <SectionHeader id="use-cases-title" eyebrow={page.labels.useCases} title={useCases.title} intro={useCases.intro} light />
 
-        <ul data-reveal-stagger className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {useCases.items.map(({ title, detail, icon: Icon }) => (
-            <li key={title} className={cx("flex gap-[18px] p-6", CARD, CARD_HOVER)}>
+        <ul data-reveal-stagger className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          {useCases.items.map(({ title, detail, icon: Icon }, index) => (
+            <li key={index} className={cx("flex gap-4 p-5 sm:gap-[18px] sm:p-6", CARD, CARD_HOVER)}>
               <span className={ICON_TILE}>
                 <Icon aria-hidden className="size-[22px]" strokeWidth={1.75} />
               </span>

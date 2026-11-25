@@ -28,15 +28,15 @@ export default function SectionHeading({
   introClassName,
 }: SectionHeadingProps) {
   return (
-    <header data-reveal-stagger className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-      <div className="flex flex-col gap-6">
+    <header data-reveal-stagger className="flex flex-col gap-5 sm:gap-8 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-5 sm:gap-6">
         <Eyebrow>{eyebrow}</Eyebrow>
         <h2 id={id} className={TITLE}>
           {title}{" "}
           <span className={cx("text-gradient pb-[0.08em]", breakBeforeHighlight && "lg:block")}>{highlight}</span>
         </h2>
       </div>
-      <p className={cx("text-lg leading-[1.6] text-fg-muted", introClassName)}>{intro}</p>
+      <p className={cx("text-[17px] leading-[1.6] text-fg-muted sm:text-lg", introClassName)}>{intro}</p>
     </header>
   );
 }

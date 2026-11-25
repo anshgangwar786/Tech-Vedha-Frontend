@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HEADER_LINKS } from "@/lib/site";
+import { HEADER_LINKS as BUNDLED_HEADER_LINKS, type NavLink } from "@/lib/site";
 import { cx } from "@/lib/cx";
 
 /** Desktop header links. The link for the current page gets a small accent dot (Figma "Active dot"). */
-export default function NavLinks() {
+export default function NavLinks({ HEADER_LINKS = BUNDLED_HEADER_LINKS }: { HEADER_LINKS?: NavLink[] }) {
   const pathname = usePathname();
 
-  return HEADER_LINKS.map((link) => {
+  return HEADER_LINKS.map((link, index) => {
     const current = link.href === pathname;
     return (
       <Link
-        key={link.href}
+        key={index}
         href={link.href}
         aria-current={current ? "page" : undefined}
         className={cx(

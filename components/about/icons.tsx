@@ -1,4 +1,4 @@
-import { Check, Factory, House, type LucideIcon, Shield, Smartphone, Store, TrendingUp, Volume2 } from "lucide-react";
+import { Check, Factory, House, type LucideIcon, Shield, Smartphone, Sparkles, Store, TrendingUp, Volume2 } from "lucide-react";
 import type { AudienceIcon } from "@/data/about";
 import type { ServiceId } from "@/data/services";
 
@@ -13,9 +13,9 @@ const WING_ICONS: Record<ServiceId, LucideIcon> = {
   software: Shield,
 };
 
-/** 21 px wing icon from the hero "What we do" panel. */
-export function WingIcon({ id, className }: IconProps & { id: ServiceId }) {
-  const Icon = WING_ICONS[id];
+/** 21 px wing icon from the hero "What we do" panel. Services added in the admin share a generic icon. */
+export function WingIcon({ id, className }: IconProps & { id: string }) {
+  const Icon = WING_ICONS[id as ServiceId] ?? Sparkles;
   return <Icon aria-hidden strokeWidth={1.6} className={className} />;
 }
 

@@ -36,13 +36,13 @@ export default function StoryCard({ story }: { story: Story }) {
   if (story.kind === "photo") {
     return (
       <figure className="overflow-hidden rounded-[20px] border border-line bg-surface">
-        <div className="relative h-[514px]">
+        <div className="relative h-[340px] sm:h-[514px]">
           <Image src={story.photo} alt={story.photoAlt} fill sizes="(min-width: 1024px) 413px, (min-width: 768px) 50vw, 100vw" className="object-cover" />
           <span className="absolute bottom-6 left-6 rounded-full bg-black/45 px-2.5 py-1 text-[11.5px] font-medium text-white backdrop-blur">
             {story.category}
           </span>
         </div>
-        <blockquote className="flex flex-col gap-[18px] px-6 pt-5 pb-6">
+        <blockquote className="flex flex-col gap-[18px] px-5 pt-5 pb-6 sm:px-6">
           <p className="font-display text-[22px] leading-[1.35] font-light text-fg">{story.quote}</p>
           <Author story={story} />
         </blockquote>
@@ -54,7 +54,7 @@ export default function StoryCard({ story }: { story: Story }) {
   return (
     <blockquote
       className={cx(
-        "flex flex-col gap-3.5 rounded-[20px] border p-6",
+        "flex flex-col gap-3.5 rounded-[20px] border p-5 sm:p-6",
         featured ? cx("border-transparent", BRAND_GRADIENT) : "border-line bg-surface",
       )}
     >
@@ -70,7 +70,7 @@ export default function StoryCard({ story }: { story: Story }) {
       )}
       <p
         className={cx(
-          featured ? "font-display text-[26px] leading-[1.35] font-light text-pretty text-white" : "text-[17px] leading-[1.6] text-fg",
+          featured ? "font-display text-[22px] leading-[1.35] font-light text-pretty text-white sm:text-[26px]" : "text-[17px] leading-[1.6] text-fg",
         )}
       >
         {story.quote}

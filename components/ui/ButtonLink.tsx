@@ -24,6 +24,8 @@ type ButtonLinkProps = {
   size?: Size;
   arrow?: boolean;
   className?: string;
+  /** Opens the site-wide "Start a project" popup instead of navigating (href stays as the no-JS fallback). */
+  startProject?: boolean;
 };
 
 export default function ButtonLink({
@@ -33,11 +35,13 @@ export default function ButtonLink({
   size = "md",
   arrow = false,
   className,
+  startProject = false,
 }: ButtonLinkProps) {
   return (
     <Link
       href={href}
       {...externalLinkProps(href)}
+      {...(startProject && { "data-start-project": "" })}
       className={cx(
         "inline-flex shrink-0 items-center justify-center rounded-full font-medium whitespace-nowrap transition duration-200",
         VARIANTS[variant],

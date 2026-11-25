@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { createHash, timingSafeEqual } from "node:crypto";
+import { normalizeSecret, sharedSecret } from "@/lib/adminApi";
+
+// Called by Tech-Vedha-Admin after every content save (and by its manual
+// "revalidate" button) — see Tech-Vedha-Admin/app/lib/utils/revalidateFrontend.ts.
+// Expires the cached admin API reads tagged with `tags` (server/content.ts)
+// and every rendered page, so the next visit shows the new content.
+
+const TAG_PATTERN = /^[a-z0-9_-]{1,100}$/i;
+
+/** Constant-time compare (hash both sides so unequal lengths don't short-circuit). */
+function secretMatches(provided: string, expected: string): boolean {
+  const a = createHash("sha256").update(provided).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
+}
+
+export async function POST(req: NextRequest) {
+  const expected = sharedSecret();
+  const provided = normalizeSecret(req.headers.get("x-revalidate-secret"));
+  if (!expected || !secretMatches(provided, expected)) {
+    return NextResponse.json({ success: false, message: "Invalid revalidate secret" }, { status: 401 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const tags: unknown = body?.tags;
+  if (
+    !Array.isArray(tags) ||
+    tags.length === 0 ||
+    tags.length > 50 ||
+    !tags.every((t) => typeof t === "string" && TAG_PATTERN.test(t))
+  ) {
+    return NextResponse.json({ success: false, message: "tags array required" }, { status: 400 });
+  }
+
+  for (const tag of tags as string[]) revalidateTag(tag, { expire: 0 });
+  // Every public page shares the root layout.
+  revalidatePath("/", "layout");
+
+  return NextResponse.json({ success: true, revalidated: tags });
+}

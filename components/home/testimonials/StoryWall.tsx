@@ -4,18 +4,31 @@ import { useId, useState } from "react";
 import { ArrowDown } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StoryCard from "@/components/home/testimonials/StoryCard";
-import { STORIES, STORY_FILTERS, type Story, type StoryFilter } from "@/data/home";
+import { STORIES as BUNDLED_STORIES, STORY_FILTERS, type Story, type StoryFilter } from "@/data/home";
 import { cx } from "@/lib/cx";
 
 const COLUMNS = [0, 1, 2] as const;
 
 type StoryWallProps = {
+  /** Live stories from the admin (bundled copy when omitted). */
+  STORIES?: Story[];
   /** Filter selected on first render (service pages open on their own stories). */
   initialFilter?: StoryFilter;
+  /** Section heading, "show more" button and footnote (admin-edited). */
+  copy?: StoryWallCopy;
+};
+
+type StoryWallCopy = { eyebrow: string; title: string[]; showMore: string; note: string };
+
+const DEFAULT_COPY: StoryWallCopy = {
+  eyebrow: "Client stories",
+  title: ["In our clients'", "own words."],
+  showMore: "Show more stories",
+  note: "",
 };
 
 /** Client stories with service filter chips and a "show more" reveal. */
-export default function StoryWall({ initialFilter = "All" }: StoryWallProps) {
+export default function StoryWall({ initialFilter = "All", STORIES = BUNDLED_STORIES, copy = DEFAULT_COPY }: StoryWallProps) {
   const [filter, setFilter] = useState<StoryFilter>(initialFilter);
   const [expanded, setExpanded] = useState(false);
   const listId = useId();
@@ -29,10 +42,14 @@ export default function StoryWall({ initialFilter = "All" }: StoryWallProps) {
     <>
       <SectionHeader
         id="stories-title"
-        eyebrow="Client stories"
-        title={["In our clients'", "own words."]}
+        eyebrow={copy.eyebrow}
+        title={copy.title}
         aside={
-          <div role="group" aria-label="Filter stories by service" className="flex flex-wrap gap-2 md:justify-end">
+          <div
+            role="group"
+            aria-label="Filter stories by service"
+            className="flex flex-wrap gap-2 max-sm:flex-nowrap max-sm:scroll-row md:justify-end"
+          >
             {STORY_FILTERS.map((option) => (
               <button
                 key={option}
@@ -54,11 +71,16 @@ export default function StoryWall({ initialFilter = "All" }: StoryWallProps) {
         }
       />
 
-      <div className="relative mt-10">
+      {/* The collapse clip lives on this wrapper, not the grid: ScrollReveal adds `is-inview` to the
+          grid's class list, and a changing React className would wipe it and re-hide the cards.
+          Threshold 0: on mobile the single-column grid is many times taller than the 560px clip, so
+          the default 15% visibility is never reached and the cards would stay hidden. */}
+      <div className={cx("relative mt-8 sm:mt-10", collapsible && "max-h-[560px] overflow-hidden")}>
         <div
           id={listId}
           data-reveal-stagger
-          className={cx("grid items-start gap-5 lg:grid-cols-3", collapsible && "max-h-[560px] overflow-hidden")}
+          data-reveal-threshold="0"
+          className="grid items-start gap-5 lg:grid-cols-3"
         >
           {COLUMNS.map((column) => (
             <div key={column} className="flex flex-col gap-5">
@@ -80,16 +102,14 @@ export default function StoryWall({ initialFilter = "All" }: StoryWallProps) {
               aria-expanded={false}
               className="mb-2 inline-flex h-12 items-center gap-2 rounded-full border border-line bg-surface px-6 text-[15px] font-medium text-fg transition-colors hover:border-brand"
             >
-              Show more stories
+              {copy.showMore}
               <ArrowDown aria-hidden className="size-4" />
             </button>
           </div>
         )}
       </div>
 
-      <p className="mt-6 text-center text-xs text-fg-subtle">
-        Sample copy for review — replace with approved client stories, names and photos before launch.
-      </p>
+      {copy.note && <p className="mt-6 text-center text-xs text-fg-subtle">{copy.note}</p>}
     </>
   );
 }

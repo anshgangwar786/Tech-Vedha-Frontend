@@ -5,8 +5,13 @@ import { useEffect, useId, useRef, useState } from "react";
 import Chip from "@/components/ui/Chip";
 import Eyebrow from "@/components/ui/Eyebrow";
 import { HIGHLIGHT, SMART_ANIMATE } from "@/components/ui/styles";
-import { LOOP_EXAMPLE_DETAIL, LOOP_STEPS } from "@/data/about";
-import { SERVICES, serviceHref } from "@/data/services";
+import {
+  HOW_IT_CONNECTS as BUNDLED_LABELS,
+  LOOP_EXAMPLE_DETAIL as BUNDLED_LOOP_EXAMPLE_DETAIL,
+  LOOP_STEPS as BUNDLED_LOOP_STEPS,
+  type LoopStep,
+} from "@/data/about";
+import { SERVICES as BUNDLED_SERVICES, serviceHref, type Service } from "@/data/services";
 import { useInView } from "@/hooks/useInView";
 import { cx } from "@/lib/cx";
 import { arrowTarget } from "@/lib/utils";
@@ -15,6 +20,8 @@ type Mode = "covers" | "example";
 
 /** Prototype timing: each step holds for 4 s, then the loop moves on. */
 const AUTO_ADVANCE_MS = 4000;
+/** Four steps, fixed: each is tied to a service in the admin. */
+const STEP_COUNT = BUNDLED_LOOP_STEPS.length;
 
 /** Where each step's tab sits around the ring (centre point, % of the ring box), from the Figma layout. */
 const TAB_POSITIONS = [
@@ -34,7 +41,8 @@ const DASH_STEP = 155;
 
 /** Lit share of each quarter: grows step by step, and the whole ring lights up on the last step. */
 function arcDash(step: number) {
-  if (step >= LOOP_STEPS.length - 1) return { dasharray: `${QUARTER} 0`, dashoffset: 0 };
+  // Four steps, fixed: each is tied to a service in the admin.
+  if (step >= BUNDLED_LOOP_STEPS.length - 1) return { dasharray: `${QUARTER} 0`, dashoffset: 0 };
   const dash = DASH_STEP * (step + 1);
   const lit = (dash / (dash + DASH_GAP)) * QUARTER;
   return { dasharray: `${lit} ${QUARTER - lit}`, dashoffset: lit / 2 };
@@ -81,12 +89,24 @@ function Ring({ step, slow }: { step: number; slow: boolean }) {
 }
 
 type LoopExplorerProps = {
+  /** Live copy from the admin (bundled copy when omitted). */
+  LOOP_STEPS?: LoopStep[];
+  LOOP_EXAMPLE_DETAIL?: string;
+  SERVICES?: Service[];
+  /** View toggle, panel and ring labels (admin-edited). */
+  labels?: typeof BUNDLED_LABELS;
   /** Section heading block shown above the view toggle (server-rendered). */
   heading: React.ReactNode;
 };
 
 /** "One loop. Every wing.": view toggle, step panel and the step ring. */
-export default function LoopExplorer({ heading }: LoopExplorerProps) {
+export default function LoopExplorer({
+  heading,
+  LOOP_STEPS = BUNDLED_LOOP_STEPS,
+  LOOP_EXAMPLE_DETAIL = BUNDLED_LOOP_EXAMPLE_DETAIL,
+  SERVICES = BUNDLED_SERVICES,
+  labels = BUNDLED_LABELS,
+}: LoopExplorerProps) {
   const [mode, setMode] = useState<Mode>("covers");
   const [step, setStep] = useState(0);
   const [auto, setAuto] = useState(true);
@@ -96,7 +116,7 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
   const baseId = useId();
 
   const goTo = (next: number) => {
-    setStep((next + LOOP_STEPS.length) % LOOP_STEPS.length);
+    setStep((next + STEP_COUNT) % STEP_COUNT);
   };
 
   /** Any visitor input takes over from the auto-advance for good (prototype: Auto=On → Off). */
@@ -107,6 +127,9 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
 
   useEffect(() => {
     if (!auto || !inView || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Below lg the step panel sits above the ring and changes height per step; advancing on its own would
+    // shift the page under a reader's thumb, so phones and tablets move only when tapped.
+    if (!matchMedia("(min-width: 1024px)").matches) return;
     const timer = window.setTimeout(() => goTo(step + 1), AUTO_ADVANCE_MS);
     return () => window.clearTimeout(timer);
   }, [auto, inView, step]);
@@ -124,25 +147,32 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
     mode === "covers"
       ? current.covers
       : { title: current.example.title, detail: LOOP_EXAMPLE_DETAIL, tags: current.example.tags };
-  const label =
-    mode === "covers"
-      ? `Step ${step + 1} of ${LOOP_STEPS.length}`
-      : `Example · New showroom · Step ${step + 1} of ${LOOP_STEPS.length}`;
+  const fill = (pattern: string, n: number) =>
+    pattern.replaceAll("{n}", String(n)).replaceAll("{total}", String(LOOP_STEPS.length));
+  const counter = fill(labels.stepCounter, step + 1);
+  const label = mode === "covers" ? counter : [labels.examplePanelLabel, counter].filter((part) => part.trim()).join(" · ");
 
   return (
-    <div ref={rootRef} className="grid items-center gap-16 lg:grid-cols-[544fr_664fr] lg:gap-[72px]">
+    <div ref={rootRef} className="grid items-center gap-10 sm:gap-16 lg:grid-cols-[544fr_664fr] lg:gap-[72px]">
       {/* Left column: heading, view toggle and the step panel. */}
-      <div className="flex flex-col items-start gap-[22px]">
+      <div className="flex flex-col items-start gap-5 sm:gap-[22px]">
         {heading}
         <div
           role="group"
           aria-label="Loop view"
-          className="flex gap-1 rounded-full border border-line bg-[linear-gradient(rgb(120_180_255/0.07),transparent_45%)] bg-surface p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] dark:drop-shadow-[0_30px_30px_rgb(0_0_0/0.7)]"
+          className="flex max-w-full gap-1 rounded-full border border-line bg-[linear-gradient(rgb(120_180_255/0.07),transparent_45%)] bg-surface p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] dark:drop-shadow-[0_30px_30px_rgb(0_0_0/0.7)]"
         >
           {(
             [
-              ["covers", "What it covers"],
-              ["example", "Example: a new showroom"],
+              ["covers", <>{labels.coversLabel}</>],
+              // Short label on small phones so the two options stay on one line each.
+              [
+                "example",
+                <>
+                  <span className="max-[419px]:hidden">{labels.exampleLabel}</span>
+                  <span className="min-[420px]:hidden">{labels.exampleShortLabel || labels.exampleLabel}</span>
+                </>,
+              ],
             ] as const
           ).map(([value, text]) => (
             <button
@@ -154,7 +184,7 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
                 setMode(value);
               }}
               className={cx(
-                "h-10 rounded-full px-4 text-sm font-medium transition-colors",
+                "h-10 rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors",
                 SMART_ANIMATE,
                 mode === value ? "bg-primary text-white" : "text-fg-muted hover:text-fg",
               )}
@@ -168,7 +198,7 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
           role="tabpanel"
           id={`${baseId}-panel`}
           aria-labelledby={`${baseId}-tab-${step}`}
-          className="mt-3 w-full overflow-hidden rounded-3xl border border-line bg-glass bg-grid p-7 backdrop-blur-md"
+          className="mt-1 w-full overflow-hidden rounded-3xl border border-line bg-glass bg-grid p-5 backdrop-blur-md sm:mt-3 sm:p-7"
         >
           <div className="flex items-center justify-between gap-4 border-b border-line pb-[18px]">
             <Eyebrow variant="dot">{label}</Eyebrow>
@@ -187,22 +217,22 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
           </div>
 
           <div key={`${mode}-${step}`} className="mt-[18px] flex animate-scene-in flex-col gap-3.5">
-            <h3 className="flex items-baseline gap-2.5 font-display text-[28px] leading-[1.15] text-fg">
-              <span className="text-[44px] leading-none font-light text-brand">{step + 1}</span>
+            <h3 className="flex items-baseline gap-2.5 font-display text-2xl leading-[1.15] text-fg sm:text-[28px]">
+              <span className="text-[38px] leading-none font-light text-brand sm:text-[44px]">{step + 1}</span>
               {content.title}
             </h3>
             <p className="max-w-[440px] text-base leading-[1.6] text-fg-muted">{content.detail}</p>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <ul aria-label="Includes" className="flex flex-wrap gap-2">
-                {content.tags.map((tag) => (
-                  <li key={tag}>
+                {content.tags.map((tag, index) => (
+                  <li key={index}>
                     <Chip className="h-7 border border-line text-fg-muted">{tag}</Chip>
                   </li>
                 ))}
               </ul>
               <Link
-                href={serviceHref(service.id)}
-                className="inline-flex h-9 items-center rounded-full bg-[#0b1a3a] px-4 text-sm font-medium text-white transition-transform duration-250 ease-out hover:-translate-y-0.5 dark:bg-white dark:text-[#0b1a3a]"
+                href={serviceHref(service)}
+                className="inline-flex h-10 items-center rounded-full bg-[#0b1a3a] px-4 text-sm font-medium text-white transition-transform duration-250 ease-out hover:-translate-y-0.5 sm:h-9 dark:bg-white dark:text-[#0b1a3a]"
               >
                 {service.short[0]} <span aria-hidden>&nbsp;→</span>
               </Link>
@@ -213,7 +243,7 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
 
       {/* Right column: the ring, with one tab per step placed around it (a 2 × 2 grid below it on phones). */}
       <div data-reveal="zoom" className="reveal relative mx-auto w-full max-w-[620px]">
-        <div className="relative aspect-square">
+        <div className="relative mx-auto aspect-square max-w-[400px] md:max-w-none">
           <div
             aria-hidden
             className="absolute inset-[20%] rounded-full bg-[radial-gradient(closest-side,#1e9bf0,#1971e8_27%,#1446e0_55%,transparent)] opacity-30 blur-[40px] dark:opacity-50"
@@ -228,8 +258,11 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
                 ✦
               </span>
               <span>
-                Client <br />
-                success
+                {labels.centerLabel.map((line, index) => (
+                  <span key={index} className="block">
+                    {line}
+                  </span>
+                ))}
               </span>
             </p>
           </div>
@@ -238,7 +271,7 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
         <div
           role="tablist"
           aria-label="Steps in the loop"
-          className="mt-6 grid grid-cols-2 gap-2 md:absolute md:inset-0 md:mt-0 md:block"
+          className="mt-5 grid grid-cols-2 gap-2 md:absolute md:inset-0 md:mt-0 md:block"
         >
           {LOOP_STEPS.map((item, index) => {
             const selected = index === step;
@@ -259,7 +292,7 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
                 onKeyDown={onTabKeyDown}
                 style={{ left: TAB_POSITIONS[index].left, top: TAB_POSITIONS[index].top }}
                 className={cx(
-                  "flex flex-col items-center gap-1 rounded-2xl border px-4 py-3 text-center transition-[background-color,border-color,box-shadow,color] md:absolute md:min-w-[168px] md:-translate-1/2 md:whitespace-nowrap",
+                  "flex flex-col items-center justify-center gap-1 rounded-2xl border px-3 py-3 text-center transition-[background-color,border-color,box-shadow,color] md:absolute md:min-w-[168px] md:-translate-1/2 md:px-4 md:whitespace-nowrap",
                   SMART_ANIMATE,
                   selected
                     ? cx(HIGHLIGHT, "border-transparent shadow-[0_0_18px_rgb(30_155_240/0.45)]")
@@ -272,7 +305,7 @@ export default function LoopExplorer({ heading }: LoopExplorerProps) {
                     selected ? "text-white/85" : "text-brand",
                   )}
                 >
-                  Step {index + 1} · {item.wing}
+                  {[fill(labels.stepTab, index + 1), item.wing].filter((part) => part.trim()).join(" · ")}
                 </span>
                 <span className={cx("font-display text-[17px] leading-[1.2]", selected ? "text-white" : "text-fg")}>
                   {item.covers.title}

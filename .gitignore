@@ -28,3 +28,30 @@ Thumbs.db
 # Local fix notes / PR draft
 fix.md
 fix-front.md
+
+# Secrets: keys, certificates and credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+credentials*.json
+service-account*.json
+*secret*.json
+.npmrc
+.netrc
+
+# Hosting / deploy tooling (can hold tokens and project ids)
+.vercel/
+.netlify/
+
+# Local databases and dumps
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.dump

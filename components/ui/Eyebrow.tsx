@@ -13,17 +13,20 @@ type EyebrowProps = {
 };
 
 export default function Eyebrow({ children, variant = "line", className }: EyebrowProps) {
+  // A label cleared in the admin renders nothing, rather than an empty pill or a lone rule.
+  if (children == null || children === false || (typeof children === "string" && !children.trim())) return null;
   const label = <span className="text-xs font-medium tracking-[0.16em] text-fg-subtle uppercase">{children}</span>;
 
   if (variant === "pill") {
     return (
       <p
         className={cx(
-          "inline-flex h-7 w-fit items-center gap-2 rounded-full border border-line bg-glass px-3.5 text-xs font-medium tracking-[0.12em] text-fg-muted uppercase",
+          // min-h (not h) so long labels can wrap on phones without spilling out of the pill.
+          "inline-flex min-h-7 w-fit items-center gap-2 rounded-[14px] border border-line bg-glass px-3.5 text-xs font-medium tracking-[0.12em] text-fg-muted uppercase max-sm:py-1 max-sm:leading-[1.35] sm:h-7 sm:rounded-full",
           className,
         )}
       >
-        <Sparkle aria-hidden className="size-3 fill-accent text-accent" />
+        <Sparkle aria-hidden className="size-3 shrink-0 fill-accent text-accent" />
         {children}
       </p>
     );
@@ -41,16 +44,18 @@ export default function Eyebrow({ children, variant = "line", className }: Eyebr
   if (variant === "badge") {
     const tip = <span className="size-1 shrink-0 rounded-full bg-accent" />;
     return (
-      <p className={cx("flex items-center justify-center gap-2.5", className)}>
-        <span aria-hidden className="flex w-10 items-center sm:w-14">
+      // Long labels (e.g. a service label typed in the admin) stay on one line: the side rules give way first, and only
+      // a label wider than the screen is cut short.
+      <p className={cx("flex max-w-full items-center justify-center gap-2.5", className)}>
+        <span aria-hidden className="flex w-10 min-w-0 items-center sm:w-14">
           <span className="h-px flex-1 bg-line" />
           {tip}
         </span>
-        <span className="inline-flex h-7 items-center gap-2 rounded-full border border-line bg-surface px-3.5 text-xs font-medium tracking-[0.12em] text-fg-muted uppercase">
-          <Sparkle aria-hidden className="size-3 fill-current" />
-          {children}
+        <span className="inline-flex h-7 max-w-full shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-3.5 text-xs font-medium tracking-[0.12em] whitespace-nowrap text-fg-muted uppercase">
+          <Sparkle aria-hidden className="size-3 shrink-0 fill-current" />
+          <span className="truncate">{children}</span>
         </span>
-        <span aria-hidden className="flex w-10 items-center sm:w-14">
+        <span aria-hidden className="flex w-10 min-w-0 items-center sm:w-14">
           {tip}
           <span className="h-px flex-1 bg-line" />
         </span>

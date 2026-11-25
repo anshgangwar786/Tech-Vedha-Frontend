@@ -19,7 +19,7 @@ export default function MarqueePauseButton({ targetId }: { targetId: string }) {
       onClick={toggle}
       aria-pressed={paused}
       aria-label={paused ? "Play scrolling text" : "Pause scrolling text"}
-      className="grid size-8 place-items-center rounded-full border border-line bg-surface-raised text-fg transition-colors hover:border-brand"
+      className="grid size-10 place-items-center rounded-full border border-line bg-surface-raised text-fg transition-colors hover:border-brand sm:size-8"
     >
       {paused ? <Play aria-hidden className="size-3 fill-current" /> : <Pause aria-hidden className="size-3 fill-current" />}
     </button>

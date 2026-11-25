@@ -3,10 +3,9 @@ import { MessageCircle } from "lucide-react";
 import Disclosure from "@/components/ui/Disclosure";
 import HeadingStack from "@/components/ui/HeadingStack";
 import { SECTION_TIGHT } from "@/components/ui/styles";
-import { FAQS } from "@/data/home";
-import { WHATSAPP_URL } from "@/lib/site";
 import { cx } from "@/lib/cx";
 import { revealDelay } from "@/lib/utils";
+import { getHome, getSite } from "@/server/content";
 
 type FaqProps = {
   /** A string array puts each entry on its own line at desktop widths. */
@@ -23,20 +22,22 @@ type FaqProps = {
  * <details>, so it works without JavaScript and answers stay crawlable. Pages also publish the
  * same items as FAQPage structured data.
  */
-export default function Faq({
-  title = ["Questions,", "answered."],
-  items = FAQS,
+export default async function Faq({
+  title: titleProp,
+  items: itemsProp,
   group = "faq",
   className = "lg:grid-cols-[380px_1fr] lg:gap-[176px]",
 }: FaqProps) {
+  const [{ WHATSAPP_URL }, { faq }] = await Promise.all([getSite(), getHome()]);
+  const items = itemsProp ?? faq.items;
   return (
     <section id="faq" aria-labelledby="faq-title" className={cx("defer-render bg-bg-deep", SECTION_TIGHT)}>
-      <div className={cx("container-site grid gap-12", className)}>
-        <div className="flex flex-col gap-6 lg:sticky lg:top-28 lg:self-start">
+      <div className={cx("container-site grid gap-8 sm:gap-12", className)}>
+        <div className="flex flex-col gap-5 sm:gap-6 lg:sticky lg:top-28 lg:self-start">
           <HeadingStack
             id="faq-title"
-            eyebrow="FAQ"
-            title={title}
+            eyebrow={faq.eyebrow}
+            title={titleProp ?? faq.title}
             titleClassName="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[1.03] tracking-[-0.028em] text-balance text-fg"
           />
           <Link
@@ -46,8 +47,8 @@ export default function Faq({
           >
             <MessageCircle aria-hidden className="size-10 shrink-0 rounded-full bg-primary p-2.5 text-white" />
             <span>
-              <span className="block text-[15px] font-medium text-fg">Still unsure?</span>
-              <span className="block text-sm text-fg-muted">Chat with us on WhatsApp →</span>
+              <span className="block text-[15px] font-medium text-fg">{faq.helpTitle}</span>
+              <span className="block text-sm text-fg-muted">{faq.helpText}</span>
             </span>
           </Link>
         </div>

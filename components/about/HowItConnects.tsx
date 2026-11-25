@@ -3,9 +3,11 @@ import SectionGlow from "@/components/about/SectionGlow";
 import HeadingStack from "@/components/ui/HeadingStack";
 import { DISPLAY_TITLE, SECTION } from "@/components/ui/styles";
 import { cx } from "@/lib/cx";
+import { getAbout, getServices } from "@/server/content";
 
 /** "One loop. Every wing.": how the four services feed each other around the client. */
-export default function HowItConnects() {
+export default async function HowItConnects() {
+  const [{ LOOP_STEPS, LOOP_EXAMPLE_DETAIL, HOW_IT_CONNECTS: copy }, SERVICES] = await Promise.all([getAbout(), getServices()]);
   return (
     <section
       id="how-it-connects"
@@ -15,13 +17,17 @@ export default function HowItConnects() {
       <SectionGlow />
       <div className="container-site">
         <LoopExplorer
+          LOOP_STEPS={LOOP_STEPS}
+          LOOP_EXAMPLE_DETAIL={LOOP_EXAMPLE_DETAIL}
+          SERVICES={SERVICES}
+          labels={copy}
           heading={
             <HeadingStack
               id="loop-title"
-              eyebrow="How everything connects"
-              title={["One loop.", "Every wing."]}
+              eyebrow={copy.eyebrow}
+              title={copy.title}
               titleClassName={cx(DISPLAY_TITLE, "text-balance")}
-              intro="Each service feeds the next. Pick a step to see what it covers."
+              intro={copy.intro}
               introClassName="max-w-[425px]"
             />
           }

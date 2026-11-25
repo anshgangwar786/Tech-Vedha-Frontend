@@ -11,7 +11,7 @@ const VAULT = [
 
 export function DataVault() {
   return (
-    <ul className="flex flex-col gap-[7px] p-3.5">
+    <ul className="@container flex flex-col gap-[7px] p-3.5">
       {VAULT.map((record, index) => (
         <li
           key={record.name}
@@ -26,10 +26,10 @@ export function DataVault() {
             <Lock aria-hidden className="size-[13px]" />
           </span>
           <span className="min-w-0">
-            <span className="block text-[11.5px] font-medium text-fg">{record.name}</span>
-            <span className="block font-mono text-[10.5px] tracking-[0.04em] text-fg-muted">•••• •••• {record.digits}</span>
+            <span className="block truncate text-[11.5px] font-medium text-fg">{record.name}</span>
+            <span className="block font-mono text-[10.5px] tracking-[0.04em] whitespace-nowrap text-fg-muted">•••• •••• {record.digits}</span>
           </span>
-          <Chip size="xs" className="ml-auto">
+          <Chip size="xs" className="ml-auto @max-[239px]:hidden">
             Encrypted
           </Chip>
         </li>

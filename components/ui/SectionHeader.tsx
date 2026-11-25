@@ -33,8 +33,8 @@ export default function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <header data-reveal-stagger className={cx("flex flex-col gap-8 md:flex-row md:items-end md:justify-between", className)}>
-      <div className="flex flex-col gap-6">
+    <header data-reveal-stagger className={cx("flex flex-col gap-5 sm:gap-8 md:flex-row md:items-end md:justify-between", className)}>
+      <div className="flex flex-col gap-5 sm:gap-6">
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
         <h2
           id={id}

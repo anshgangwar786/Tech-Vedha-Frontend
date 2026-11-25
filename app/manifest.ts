@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
-import { SITE } from "@/lib/site";
+import { getSite } from "@/server/content";
 
-export default function manifest(): MetadataRoute.Manifest {
+/** Install name and description come from Site & menus in the admin. */
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const { SITE } = await getSite();
   return {
     name: SITE.name,
     short_name: SITE.name,

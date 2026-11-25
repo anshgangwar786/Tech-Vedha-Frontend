@@ -31,10 +31,14 @@ function Connector({ position, flip }: { position: string; flip: string }) {
   );
 }
 
-/** Four reasons arranged around the service icon, joined by connectors on desktop. */
+/**
+ * Four reasons arranged around the service icon, joined by connectors on desktop. Any other number of points
+ * (the list is editable in the admin) is shown as a plain card grid instead, since the hub has four fixed spots.
+ */
 export default function WhyUs({ page }: WhyUsProps) {
   const { whyUs } = page;
   const Icon = whyUs.icon;
+  const radial = whyUs.points.length === QUADRANTS.length;
 
   return (
     <section aria-labelledby="why-title" className={cx("defer-render bg-bg", SECTION)}>
@@ -42,34 +46,36 @@ export default function WhyUs({ page }: WhyUsProps) {
         <div className="flex flex-col items-center gap-[22px] text-center">
           <HeadingStack
             id="why-title"
-            eyebrow="Why Tech Vedha"
+            eyebrow={page.labels.whyUs}
             eyebrowVariant="badge"
             title={whyUs.title}
             titleClassName={cx(DISPLAY_TITLE, "text-balance")}
           />
         </div>
 
-        <div className="relative mx-auto mt-16 max-w-[1120px] lg:h-[500px]">
-          <div aria-hidden className="hidden lg:block">
-            {QUADRANTS.map((quadrant) => (
-              <Connector key={quadrant.line} position={quadrant.line} flip={quadrant.flip} />
-            ))}
-            <div className="absolute top-1/2 left-1/2 h-[260px] w-[420px] -translate-1/2 rounded-full bg-[radial-gradient(closest-side,#1e9bf0,#1446e0_50%,transparent)] opacity-45 blur-[40px]" />
-            <div className="absolute top-1/2 left-1/2 grid size-44 -translate-1/2 place-items-center rounded-full border border-line bg-glass backdrop-blur-md">
-              <span className={cx("grid size-28 place-items-center rounded-full text-white drop-shadow-[0_0_25px_rgb(30_155_240/0.5)]", BRAND_GRADIENT)}>
-                <Icon className="size-10" strokeWidth={1.5} />
-              </span>
+        <div className={cx("relative mx-auto mt-10 max-w-[1120px] sm:mt-16", radial && "lg:h-[500px]")}>
+          {radial && (
+            <div aria-hidden className="hidden lg:block">
+              {QUADRANTS.map((quadrant) => (
+                <Connector key={quadrant.line} position={quadrant.line} flip={quadrant.flip} />
+              ))}
+              <div className="absolute top-1/2 left-1/2 h-[260px] w-[420px] -translate-1/2 rounded-full bg-[radial-gradient(closest-side,#1e9bf0,#1446e0_50%,transparent)] opacity-45 blur-[40px]" />
+              <div className="absolute top-1/2 left-1/2 grid size-44 -translate-1/2 place-items-center rounded-full border border-line bg-glass backdrop-blur-md">
+                <span className={cx("grid size-28 place-items-center rounded-full text-white drop-shadow-[0_0_25px_rgb(30_155_240/0.5)]", BRAND_GRADIENT)}>
+                  <Icon className="size-10" strokeWidth={1.5} />
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
-          <ol data-reveal-stagger className="grid gap-4 sm:grid-cols-2 lg:block">
+          <ol data-reveal-stagger className={cx("grid gap-3 sm:grid-cols-2 sm:gap-4", radial ? "lg:block" : "lg:grid-cols-3")}>
             {whyUs.points.map((point, index) => (
               <li
-                key={point.title}
+                key={`${point.title}-${index}`}
                 className={cx(
-                  "flex flex-col gap-2.5 p-6 lg:absolute lg:min-h-[180px] lg:w-[29%]",
+                  "flex flex-col gap-2 p-5 sm:gap-2.5 sm:p-6",
                   CARD,
-                  QUADRANTS[index].card,
+                  radial && cx("lg:absolute lg:min-h-[180px] lg:w-[29%]", QUADRANTS[index].card),
                 )}
               >
                 <span className={cx(NUMBER, "text-[32px]")}>{stepNumber(index)}</span>

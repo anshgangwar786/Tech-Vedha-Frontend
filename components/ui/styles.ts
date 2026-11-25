@@ -1,10 +1,13 @@
 /** Class names shared across pages (values from the Figma components). */
 
-/** Section rhythm: 136 px vertical padding on desktop (service and About pages). */
-export const SECTION = "py-24 lg:py-[136px]";
+/** Section rhythm: 136 px vertical padding on desktop (service and About pages), 64 px on phones. */
+export const SECTION = "py-16 sm:py-24 lg:py-[136px]";
 
-/** Tighter section rhythm: 130 px vertical padding on desktop (home and Contact pages). */
-export const SECTION_TIGHT = "py-24 lg:py-[130px]";
+/** Tighter section rhythm: 130 px vertical padding on desktop (home and Contact pages), 64 px on phones. */
+export const SECTION_TIGHT = "py-16 sm:py-24 lg:py-[130px]";
+
+/** Gap between a section header and the content under it: 56 px, 40 px on phones. */
+export const SECTION_BODY = "mt-10 sm:mt-14";
 
 /** Large section titles: Urbanist Light, 72 px at desktop. */
 export const DISPLAY_TITLE =
@@ -44,4 +47,4 @@ export const HIGHLIGHT =
 export const PILL = "inline-flex h-7 w-fit items-center gap-1.5 rounded-full bg-surface-raised px-3 text-xs font-medium text-fg";
 
 /** Uppercase micro label (10 px, 0.14em). */
-export const MICRO = "text-[10px] font-medium tracking-[0.14em] text-fg-subtle uppercase";
+export const MICRO = "text-[11px] font-medium tracking-[0.14em] text-fg-subtle uppercase sm:text-[10px]";

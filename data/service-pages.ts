@@ -64,7 +64,7 @@ import {
   SiYoutube,
   SiZapier,
 } from "react-icons/si";
-import { SERVICES, type Service, type ServiceId } from "@/data/services";
+import { SERVICES, type Service } from "@/data/services";
 
 /** Illustrations available to the "What you get" cards (see components/service/visuals). */
 export type DeliverableVisual =
@@ -81,7 +81,12 @@ type IconItem = { title: string; detail: string; icon: LucideIcon };
  * A tool in the tech-stack grid. `color` is the brand colour; omit it for monochrome logos (Next.js, Cypress).
  * Logos missing from react-icons use `image`: a full-colour SVG in /public.
  */
-export type TechTool = { name: string; color?: string } & ({ icon: IconType } | { image: string });
+export type TechTool = { name: string; color?: string } & (
+  | { icon: IconType }
+  | { image: string }
+  /** Tools without a logo in the code (added on a page written in the admin): a letter badge. */
+  | { initials: string }
+);
 
 export type TechGroup = { title: string; tagline: string; tools: TechTool[] };
 
@@ -91,16 +96,39 @@ export type ProcessTrack = {
   steps: { title: string; summary: string; deliverables: string[] }[];
 };
 
+/** Section labels and small buttons shared by every service page layout (edited per page in the admin). */
+export const SERVICE_PAGE_LABELS = {
+  coverage: "What we cover",
+  coverageItemCta: "View details",
+  coverageHelpTitle: "Not sure where to start?",
+  coverageHelpCta: "Talk to us",
+  whyUs: "Why Tech Vedha",
+  deliverables: "What you get",
+  deliverablesCta: "Explore",
+  useCases: "Who it's for",
+  process: "How it works",
+  /** After the number of tools in a tech stack group, e.g. "6 tools". */
+  toolsWord: "tools",
+};
+
+export type ServicePageLabels = typeof SERVICE_PAGE_LABELS;
+
 export type ServicePage = {
-  id: ServiceId;
+  /** A built-in ServiceId, or the slug of a service added in the admin (data/custom-service-pages.ts). */
+  id: string;
   seo: { title: string; description: string; keywords: string[] };
   hero: { title: string; highlight: string; intro: string; platforms: string[] };
+  labels: ServicePageLabels;
   coverage: { title: string[]; intro: string; items: IconItem[]; helpText: string };
   whyUs: { title: string[]; icon: LucideIcon; points: { title: string; detail: string }[] };
   deliverables: {
     title: string[];
     intro: string;
-    cards: { title: string; detail: string; visual: DeliverableVisual; href: string }[];
+    /**
+     * `visual` picks a drawn illustration; without one the card shows `checklist` as a checklist illustration.
+     * An empty `href` hides the card's "Explore" link.
+     */
+    cards: { title: string; detail: string; visual?: DeliverableVisual; checklist?: string[]; href: string }[];
     ownership: { title: string; detail: string; items: string[] };
   };
   useCases: { title: string[]; intro: string; items: IconItem[] };
@@ -120,7 +148,8 @@ export type ServicePage = {
   faq: { title: string; items: { question: string; answer: string }[] };
 };
 
-const PAGES: ServicePage[] = [
+/** Bundled copy of each service page (edited in Tech-Vedha-Admin → Services → <service>). */
+export const SERVICE_PAGE_CONTENT: ServicePage[] = [
   {
     id: "apps",
     seo: {
@@ -144,6 +173,7 @@ const PAGES: ServicePage[] = [
         "Native Android and iOS apps, designed, tested, launched and supported by one team — so your app keeps getting better after launch.",
       platforms: ["Android", "iOS"],
     },
+    labels: { ...SERVICE_PAGE_LABELS },
     coverage: {
       title: ["Everything your app needs,", "under one roof."],
       intro: "Five parts of one build. Hire us for one, or for all of them together.",
@@ -435,6 +465,7 @@ const PAGES: ServicePage[] = [
         "Digital marketing services for businesses in India and abroad — SEO, Google and Meta ads, YouTube, email and WhatsApp marketing, planned, run and reported by one team.",
       platforms: ["Search", "Social"],
     },
+    labels: { ...SERVICE_PAGE_LABELS },
     coverage: {
       title: ["Digital marketing services,", "under one roof."],
       intro: "SEO, paid ads, video, email and WhatsApp marketing. Hire us for one channel, or for a full-funnel plan.",
@@ -711,14 +742,27 @@ const PAGES: ServicePage[] = [
   },
 ];
 
+/** Every tool with a logo on the built-in pages, by lower-case name (pages written in the admin pick tools by name). */
+export const TOOLS_BY_NAME: ReadonlyMap<string, TechTool> = new Map(
+  SERVICE_PAGE_CONTENT.flatMap((page) => page.techStack.groups.flatMap((group) => group.tools)).map((tool) => [
+    tool.name.trim().toLowerCase(),
+    tool,
+  ]),
+);
+
 export type ResolvedServicePage = ServicePage & { service: Service };
 
-/** Every service page with its catalogue entry (number, wing, title, slug) attached. */
-export const SERVICE_PAGES: ResolvedServicePage[] = PAGES.map((page) => {
-  const service = SERVICES.find((item) => item.id === page.id);
-  if (!service) throw new Error(`Service page "${page.id}" has no entry in data/services.ts`);
-  return { ...page, service };
-});
+/** Each service page with its catalogue entry (number, wing, title, slug) attached. */
+export function resolveServicePages(pages: ServicePage[], services: Service[]): ResolvedServicePage[] {
+  return pages.map((page) => {
+    const service = services.find((item) => item.id === page.id);
+    if (!service) throw new Error(`Service page "${page.id}" has no entry in data/services.ts`);
+    return { ...page, service };
+  });
+}
+
+/** Bundled values (fallback when the admin is unreachable). Pages read the live ones via server/content.ts. */
+export const SERVICE_PAGES: ResolvedServicePage[] = resolveServicePages(SERVICE_PAGE_CONTENT, SERVICES);
 
 export function getServicePage(slug: string): ResolvedServicePage | undefined {
   return SERVICE_PAGES.find((page) => page.service.slug === slug);

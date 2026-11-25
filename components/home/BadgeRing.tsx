@@ -3,8 +3,8 @@ import { Sparkle } from "lucide-react";
 const RING_TEXT = "TECH VEDHA • BUILD FOR TOMORROW • ";
 
 /** Slowly rotating circular wordmark. Letters are placed with CSS rotation, so no SVG path is needed. */
-export default function BadgeRing() {
-  const letters = Array.from(RING_TEXT);
+export default function BadgeRing({ text = RING_TEXT }: { text?: string }) {
+  const letters = Array.from(text.trim() ? text : RING_TEXT);
   const step = 360 / letters.length;
 
   return (

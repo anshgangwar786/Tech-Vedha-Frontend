@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { SERVICES } from "@/data/services";
-import { SITE } from "@/lib/site";
+import { SERVICES as BUNDLED_SERVICES, type Service } from "@/data/services";
+import { SITE, type SiteData } from "@/lib/site";
+
+/** Live brand and contact details (getSite()); the bundled ones when omitted. */
+type SiteInfo = SiteData["SITE"];
 
 export type JsonLdData = Record<string, unknown>;
 type JsonLd = JsonLdData;
@@ -30,7 +33,8 @@ export function pageMetadata(page: {
 
 const ORGANIZATION_ID = `${SITE.url}/#organization`;
 
-export function organizationJsonLd(): JsonLd {
+export function organizationJsonLd(site: SiteInfo = SITE, SERVICES: Service[] = BUNDLED_SERVICES): JsonLd {
+  const SITE = site;
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -117,7 +121,11 @@ export function aboutPageJsonLd(page: { name: string; description: string; path:
 }
 
 /** A contact page, with the organisation's sales contact point. */
-export function contactPageJsonLd(page: { name: string; description: string; path: string }): JsonLd {
+export function contactPageJsonLd(
+  page: { name: string; description: string; path: string },
+  site: SiteInfo = SITE,
+): JsonLd {
+  const SITE = site;
   return {
     "@context": "https://schema.org",
     "@type": "ContactPage",

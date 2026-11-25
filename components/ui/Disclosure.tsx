@@ -27,7 +27,7 @@ export default function Disclosure({ group, summary, children, defaultOpen = fal
         "details-content:h-0 details-content:overflow-hidden details-content:transition-[height,content-visibility] details-content:transition-discrete details-content:duration-450 details-content:ease-[cubic-bezier(0.32,0.72,0,1)] open:details-content:h-auto",
       )}
     >
-      <summary className="flex min-h-[72px] cursor-pointer list-none items-center gap-5 px-6 py-4 [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-[72px] cursor-pointer list-none items-center gap-4 px-5 py-4 sm:gap-5 sm:px-6 [&::-webkit-details-marker]:hidden">
         {summary}
         <span
           aria-hidden
@@ -37,7 +37,7 @@ export default function Disclosure({ group, summary, children, defaultOpen = fal
           <Minus className="hidden size-4 group-open:block" />
         </span>
       </summary>
-      <div className={cx("px-6 pb-6", bodyClassName)}>{children}</div>
+      <div className={cx("px-5 pb-5 sm:px-6 sm:pb-6", bodyClassName)}>{children}</div>
     </details>
   );
 }

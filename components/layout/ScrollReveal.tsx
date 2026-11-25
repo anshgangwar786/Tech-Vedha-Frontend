@@ -5,6 +5,7 @@ import { useEffect } from "react";
 const SELECTOR = ".reveal, [data-reveal-stagger]";
 /** Stagger delays stop growing after this many children, so long lists don't lag behind. */
 const MAX_STAGGER_INDEX = 8;
+const DEFAULT_THRESHOLD = 0.15;
 
 /**
  * Marks `.reveal` and `[data-reveal-stagger]` elements with `.is-inview` the first time they
@@ -18,16 +19,27 @@ export default function ScrollReveal() {
     root.classList.add("reveal-armed");
 
     const seen = new WeakSet<Element>();
-    const inView = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add("is-inview");
-          inView.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
-    );
+    const reveal = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("is-inview");
+        observer.unobserve(entry.target);
+      }
+    };
+    /* One observer per threshold; `data-reveal-threshold="0.35"` waits until 35% is visible, and
+       `"0"` fires on the first visible pixel (for very tall or clipped lists that can never show 15%). */
+    const observers = new Map<number, IntersectionObserver>();
+    const observerFor = (element: Element) => {
+      const raw = element.getAttribute("data-reveal-threshold");
+      const parsed = raw === null || raw.trim() === "" ? NaN : Number(raw);
+      const threshold = parsed >= 0 && parsed <= 1 ? parsed : DEFAULT_THRESHOLD;
+      let observer = observers.get(threshold);
+      if (!observer) {
+        observer = new IntersectionObserver(reveal, { threshold, rootMargin: "0px 0px -8% 0px" });
+        observers.set(threshold, observer);
+      }
+      return observer;
+    };
 
     const watch = (element: Element) => {
       if (seen.has(element)) return;
@@ -37,7 +49,7 @@ export default function ScrollReveal() {
           (child as HTMLElement).style.setProperty("--i", String(Math.min(index, MAX_STAGGER_INDEX)));
         });
       }
-      inView.observe(element);
+      observerFor(element).observe(element);
     };
 
     const scan = (node: Node) => {
@@ -54,7 +66,7 @@ export default function ScrollReveal() {
 
     return () => {
       added.disconnect();
-      inView.disconnect();
+      observers.forEach((observer) => observer.disconnect());
     };
   }, []);
 

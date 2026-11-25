@@ -9,12 +9,13 @@ type BreadcrumbProps = {
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex items-center gap-2 text-[13px] font-medium text-fg-subtle">
+      <ol className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-fg-subtle">
         {items.map((item, index) => (
           <li key={item.label} className="flex items-center gap-2">
             {index > 0 && <span aria-hidden>/</span>}
             {item.href ? (
-              <Link href={item.href} className="transition-colors duration-250 hover:text-fg">
+              // The ::after box grows the tap area to 40 px tall without changing the layout.
+              <Link href={item.href} className="relative after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[''] transition-colors duration-250 hover:text-fg">
                 {item.label}
               </Link>
             ) : (

@@ -11,29 +11,33 @@ import UseCases from "@/components/service/UseCases";
 import WhyUs from "@/components/service/WhyUs";
 import Faq from "@/components/ui/Faq";
 import JsonLd from "@/components/ui/JsonLd";
-import { SERVICE_PAGES, getServicePage } from "@/data/service-pages";
 import { breadcrumbJsonLd, faqJsonLd, pageMetadata, serviceJsonLd, type Crumb } from "@/lib/seo";
+import { getServicePage, getServicePageSlugs } from "@/server/content";
+import { PageSeo } from "@/components/seo/SeoTags";
 
 type ServicePageProps = { params: Promise<{ slug: string }> };
 
 /** Pages are prerendered at build time and regenerated at most every 10 minutes (ISR). */
 export const revalidate = 600;
-/** Only slugs listed in data/service-pages.ts exist; anything else is a 404. */
-export const dynamicParams = false;
+/**
+ * The pages live at build time are prerendered; a page switched on in the admin later (an added service with
+ * "Has its own page") renders on first visit. A slug without a page is a 404 (notFound below).
+ */
+export const dynamicParams = true;
 
-export function generateStaticParams() {
-  return SERVICE_PAGES.map((page) => ({ slug: page.service.slug }));
+export async function generateStaticParams() {
+  return (await getServicePageSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: ServicePageProps): Promise<Metadata> {
-  const page = getServicePage((await params).slug);
+  const page = await getServicePage((await params).slug);
   if (!page) return {};
 
   return pageMetadata({ ...page.seo, path: `/services/${page.service.slug}` });
 }
 
 export default async function ServicePage({ params }: ServicePageProps) {
-  const page = getServicePage((await params).slug);
+  const page = await getServicePage((await params).slug);
   if (!page) notFound();
 
   const { service } = page;
@@ -57,20 +61,24 @@ export default async function ServicePage({ params }: ServicePageProps) {
   return (
     <>
       <JsonLd data={structuredData} />
+      <PageSeo path={path} />
       <ServiceHero page={page} trail={trail} />
-      <Coverage page={page} />
-      <WhyUs page={page} />
-      <Deliverables page={page} />
-      <UseCases page={page} />
+      {/* Sections a page written in the admin hasn't filled in yet are left out. */}
+      {page.coverage.items.length > 0 && <Coverage page={page} />}
+      {page.whyUs.points.length > 0 && <WhyUs page={page} />}
+      {page.deliverables.cards.length > 0 && <Deliverables page={page} />}
+      {page.useCases.items.length > 0 && <UseCases page={page} />}
       <HowItWorks page={page} />
-      <TechStack page={page} />
+      {page.techStack.groups.length > 0 && <TechStack page={page} />}
       <Testimonials />
-      <Faq
-        title={page.faq.title}
-        items={page.faq.items}
-        group="service-faq"
-        className="lg:grid-cols-[483fr_725fr] lg:gap-[72px]"
-      />
+      {page.faq.items.length > 0 && (
+        <Faq
+          title={page.faq.title}
+          items={page.faq.items}
+          group="service-faq"
+          className="lg:grid-cols-[483fr_725fr] lg:gap-[72px]"
+        />
+      )}
       <Contact />
     </>
   );

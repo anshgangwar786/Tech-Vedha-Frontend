@@ -117,14 +117,14 @@ function CampaignDashboard() {
           {CHANNELS.map(({ name, icon: Icon, color, width }) => (
             <li key={name} className="flex items-center gap-2 text-[11px] font-medium text-fg">
               <Icon className="size-3 shrink-0" style={{ color }} />
-              <span className="w-[92px] shrink-0">{name}</span>
+              <span className="w-[84px] shrink-0 truncate sm:w-[92px]">{name}</span>
               <Bar width={width} />
               <span className="w-[30px] text-right text-[10px] text-fg-subtle">Live</span>
             </li>
           ))}
         </ul>
       </div>
-      <p className={cx(TOAST, "-right-4 bottom-12 w-[202px] sm:-right-24")}>
+      <p className={cx(TOAST, "-right-1 -bottom-9 w-[202px] sm:-right-24 sm:bottom-12")}>
         <span className="grid size-7 shrink-0 place-items-center rounded-[9px] bg-[#25d366] text-white">
           <SiWhatsapp className="size-3.5" />
         </span>
@@ -173,7 +173,7 @@ function SearchRankings() {
         <ul className="flex flex-col gap-[7px]">
           {KEYWORDS.map(({ keyword, width, rank }) => (
             <li key={keyword} className="flex h-4 items-center gap-2 text-[11px] font-medium text-fg">
-              <span className="w-[140px] shrink-0">{keyword}</span>
+              <span className="w-[118px] shrink-0 truncate sm:w-[140px]">{keyword}</span>
               <Bar width={width} />
               <span className="flex w-[58px] items-center justify-end gap-1 text-[10px]">
                 <ArrowUp aria-hidden className="size-2.5 text-[#22c55e]" strokeWidth={2.5} />
@@ -183,7 +183,7 @@ function SearchRankings() {
           ))}
         </ul>
       </div>
-      <p className={cx(TOAST, "-right-4 -bottom-6 w-[190px] sm:-right-20")}>
+      <p className={cx(TOAST, "-right-1 -bottom-9 w-[190px] sm:-right-20 sm:-bottom-6")}>
         <span className="grid size-7 shrink-0 place-items-center rounded-[9px] bg-[#22c55e] text-white">
           <ArrowUp aria-hidden className="size-3" strokeWidth={2.5} />
         </span>
@@ -252,7 +252,7 @@ function MonthlyReport() {
           </p>
         ))}
       </div>
-      <p className={cx(TOAST, "-right-4 top-[72px] px-3.5 sm:-right-[116px]")}>
+      <p className={cx(TOAST, "-right-1 -top-9 px-3.5 sm:top-[72px] sm:-right-[116px]")}>
         <span className="grid h-9 w-[30px] shrink-0 place-items-center rounded-md bg-linear-130 from-[#1e9bf0] to-[#1446e0] text-[9px] font-semibold text-white">
           PDF
         </span>
@@ -289,9 +289,9 @@ function Checklist({ title, items }: { title: string; items: ChecklistItem[] }) 
 
   return (
     <div className="w-full max-w-[360px] rounded-2xl border border-line bg-glass px-[18px] py-4 shadow-[0_30px_60px_rgb(3_10_24/0.35)] backdrop-blur-md">
-      <p className="flex justify-between text-[11px] font-medium tracking-[0.08em] text-fg-subtle">
+      <p className="flex justify-between gap-3 text-[11px] font-medium tracking-[0.08em] text-fg-subtle">
         {title}
-        <span className="text-fg">
+        <span className="shrink-0 whitespace-nowrap text-fg">
           {passed} / {items.length}
         </span>
       </p>
@@ -324,6 +324,21 @@ function Checklist({ title, items }: { title: string; items: ChecklistItem[] }) 
 }
 
 /** Decorative illustrations for the "What you get" cards, keyed from the page data. */
+/**
+ * Checklist illustration from a card's own items (pages written in the admin, which have no drawn illustrations):
+ * every item ticked but the last, which is still to do — like the release and campaign checklists above.
+ */
+export function CardChecklist({ title, items }: { title: string; items: string[] }) {
+  const rows = items.map((label) => label.trim()).filter(Boolean).slice(0, 6);
+  if (!rows.length) return null;
+  return (
+    <Checklist
+      title={`${title.toUpperCase()} · CHECKLIST`}
+      items={rows.map((label, index) => ({ label, done: rows.length === 1 || index < rows.length - 1 }))}
+    />
+  );
+}
+
 export const DELIVERABLE_VISUALS: Record<DeliverableVisual, React.ReactNode> = {
   "app-screens": <AppScreens />,
   "release-checklist": <Checklist title="RELEASE 1.0 · CHECKLIST" items={RELEASE_CHECKLIST} />,

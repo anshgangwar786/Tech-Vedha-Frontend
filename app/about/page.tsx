@@ -8,25 +8,29 @@ import WhyWeExist from "@/components/about/WhyWeExist";
 import Contact from "@/components/home/Contact";
 import Faq from "@/components/ui/Faq";
 import JsonLd from "@/components/ui/JsonLd";
-import { ABOUT_SEO } from "@/data/about";
-import { FAQS } from "@/data/home";
 import { aboutPageJsonLd, breadcrumbJsonLd, faqJsonLd, pageMetadata, type Crumb } from "@/lib/seo";
+import { getAbout, getHome } from "@/server/content";
+import { PageSeo } from "@/components/seo/SeoTags";
 
 const PATH = "/about";
 const TRAIL: Crumb[] = [{ label: "Home", href: "/" }, { label: "About" }];
 
-export const metadata: Metadata = pageMetadata({ ...ABOUT_SEO, path: PATH, absoluteTitle: true });
+export async function generateMetadata(): Promise<Metadata> {
+  const { ABOUT_SEO } = await getAbout();
+  return pageMetadata({ ...ABOUT_SEO, path: PATH, absoluteTitle: true });
+}
 
-const STRUCTURED_DATA = [
-  aboutPageJsonLd({ name: ABOUT_SEO.title, description: ABOUT_SEO.description, path: PATH }),
-  breadcrumbJsonLd(TRAIL),
-  faqJsonLd(FAQS),
-];
-
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [{ ABOUT_SEO }, { FAQS }] = await Promise.all([getAbout(), getHome()]);
+  const STRUCTURED_DATA = [
+    aboutPageJsonLd({ name: ABOUT_SEO.title, description: ABOUT_SEO.description, path: PATH }),
+    breadcrumbJsonLd(TRAIL),
+    faqJsonLd(FAQS),
+  ];
   return (
     <>
       <JsonLd data={STRUCTURED_DATA} />
+      <PageSeo path={PATH} />
       <AboutHero trail={TRAIL} />
       <WhyWeExist />
       <WhoWeWorkWith />

@@ -7,7 +7,7 @@ import { stepNumber } from "@/lib/utils";
 
 function ToolChip({ tool }: { tool: TechTool }) {
   return (
-    <li className="flex h-14 items-center gap-3 rounded-[14px] border border-line bg-bg px-3">
+    <li className="flex min-h-14 items-center gap-2.5 rounded-[14px] border border-line bg-bg px-2.5 py-2 sm:h-14 sm:gap-3 sm:px-3 sm:py-0">
       <span
         className={cx(
           "grid size-[34px] shrink-0 place-items-center rounded-[10px] border",
@@ -19,18 +19,22 @@ function ToolChip({ tool }: { tool: TechTool }) {
       >
         {"icon" in tool ? (
           <tool.icon aria-hidden className="size-[20px]" />
-        ) : (
+        ) : "image" in tool ? (
           <Image src={tool.image} alt="" width={22} height={22} />
+        ) : (
+          <span aria-hidden className="text-[13px] font-semibold text-brand">
+            {tool.initials}
+          </span>
         )}
       </span>
-      <span className="text-sm font-medium text-fg">{tool.name}</span>
+      <span className="min-w-0 text-[13px] font-medium text-fg max-sm:leading-tight sm:text-sm">{tool.name}</span>
     </li>
   );
 }
 
 /** "Proven tools. Zero lock-in." — the tools the team works with, grouped by layer or channel. */
 export default function TechStack({ page }: { page: ResolvedServicePage }) {
-  const { techStack } = page;
+  const { techStack, labels } = page;
 
   return (
     <section aria-labelledby="tech-stack-title" className={cx("defer-render relative isolate overflow-hidden bg-bg-deep", SECTION)}>
@@ -51,12 +55,12 @@ export default function TechStack({ page }: { page: ResolvedServicePage }) {
           light
         />
 
-        <ul data-reveal-stagger className="mt-14 grid border-y border-line md:grid-cols-3">
+        <ul data-reveal-stagger className="mt-10 grid border-y border-line sm:mt-14 md:grid-cols-3">
           {techStack.highlights.map((highlight, index) => (
             <li
               key={highlight}
               className={cx(
-                "flex items-center gap-3.5 py-6 text-sm font-medium text-fg-muted",
+                "flex items-center gap-3.5 py-4 text-sm font-medium text-fg-muted sm:py-6",
                 index > 0 && "border-t border-line md:border-t-0 md:border-l md:pl-7",
               )}
             >
@@ -66,22 +70,23 @@ export default function TechStack({ page }: { page: ResolvedServicePage }) {
           ))}
         </ul>
 
-        <div data-reveal-stagger className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {/* Phones: a swipeable row of groups (the next one peeks in) instead of six tall cards stacked. */}
+        <div data-reveal-stagger className="mt-8 grid gap-4 max-sm:flex max-sm:snap-row sm:mt-12 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
           {techStack.groups.map((group, index) => (
             <article
               key={group.title}
-              className="group flex flex-col gap-6 rounded-3xl border border-line bg-surface p-7 transition duration-250 ease-out hover:border-brand hover:shadow-[0_30px_60px_rgb(30_155_240/0.35)]"
+              className="group flex flex-col gap-5 rounded-3xl border border-line bg-surface p-5 transition duration-250 ease-out hover:border-brand hover:shadow-[0_30px_60px_rgb(30_155_240/0.35)] sm:gap-6 sm:p-7"
             >
-              <header className="flex items-center gap-4">
+              <header className="flex items-start gap-3.5 sm:items-center sm:gap-4">
                 <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-surface-raised font-display text-lg text-brand transition-colors duration-250 group-hover:bg-brand group-hover:text-white">
                   {stepNumber(index)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-display text-2xl leading-tight tracking-[-0.01em] text-fg">{group.title}</h3>
+                  <h3 className="font-display text-[22px] leading-tight tracking-[-0.01em] text-fg sm:text-2xl">{group.title}</h3>
                   <p className="mt-1 text-sm text-fg-muted">{group.tagline}</p>
                 </div>
-                <span className="flex h-[26px] shrink-0 items-center rounded-full border border-line px-2.5 text-[11px] font-medium tracking-[0.06em] text-fg-subtle">
-                  {group.tools.length} tools
+                <span className="hidden h-[26px] shrink-0 items-center rounded-full border border-line px-2.5 text-[11px] font-medium tracking-[0.06em] text-fg-subtle sm:flex">
+                  {group.tools.length} {labels.toolsWord}
                 </span>
               </header>
               <ul className="grid grid-cols-2 gap-2.5">
