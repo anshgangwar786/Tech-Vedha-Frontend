@@ -13,8 +13,9 @@ const clean = (value: string | null | undefined) =>
 export const normalizeSecret = (v: string | null | undefined) => (v ?? "").trim().replace(/^['"]|['"]$/g, "");
 
 /**
- * Origin of Tech-Vedha-Admin. Locally it defaults to http://localhost:3000; a production build without
- * ADMIN_API_URL never calls localhost and serves the bundled copy in data/ instead.
+ * Origin of Tech-Vedha-Admin. Locally it defaults to http://localhost:3000. On Vercel, set ADMIN_API_URL to
+ * the admin's Vercel URL (https://<admin project>.vercel.app): a production build without it never calls
+ * localhost and serves the bundled copy in data/ instead.
  */
 const ADMIN_API_URL =
   clean(process.env.ADMIN_API_URL) || (process.env.NODE_ENV === "production" ? "" : "http://localhost:3000");

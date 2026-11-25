@@ -72,15 +72,18 @@ Web only, optional: NEXT_PUBLIC_CONTACT_EMAIL, NEXT_PUBLIC_CONTACT_PHONE, NEXT_P
 | Variable | Side | Local | Production |
 |---|---|---|---|
 | `REVALIDATE_SECRET` | both | same random value | same random value (`openssl rand -hex 32`), new for prod |
-| `ADMIN_API_URL` | web | `http://localhost:3000` | `https://<admin host>` |
-| `SITE_URL` | web | unset (example.com) | `https://<site host>` |
+| `ADMIN_API_URL` | web | `http://localhost:3000` (default) | `https://<admin project>.vercel.app` |
+| `SITE_URL` | web | unset → `http://localhost:3002` | unset → Vercel production domain (automatic); set for a custom domain |
 | `MEDIA_HOSTNAMES` | web | `navajowhite-octopus-630288.hostingersite.com` | host of `HOSTINGER_MEDIA_URL` |
-| `FRONTEND_URL` | admin | `http://localhost:3002` | `https://<site host>` |
-| `NEXT_PUBLIC_FRONTEND_URL` | admin | `http://localhost:3002` | `https://<site host>`, set **before** `npm run build` |
-| `PRODUCTION_URL` | admin | `http://localhost:3002` | `https://<site host>` |
+| `FRONTEND_URL` | admin | `http://localhost:3002` | `https://<website project>.vercel.app` |
+| `NEXT_PUBLIC_FRONTEND_URL` | admin | optional, defaults to `FRONTEND_URL` | optional, defaults to `FRONTEND_URL` (inlined at build) |
+| `PRODUCTION_URL` | admin | optional, defaults to `FRONTEND_URL` | optional, defaults to `FRONTEND_URL` |
 | `DATABASE_URL` | admin | MySQL URL, `?connection_limit=5` | production MySQL, `?connection_limit=5` |
 
 No trailing slashes on origins (both sides strip them anyway).
+
+`.env` is git-ignored, so the localhost values never reach Vercel: there the values come from
+Project → Settings → Environment Variables. Changing one there needs a redeploy.
 
 Guards that catch a wrong production config:
 - admin: `next.config.ts` **fails** a Vercel production build when `DATABASE_URL`, `JWT_SECRET` or

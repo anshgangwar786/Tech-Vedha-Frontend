@@ -1,5 +1,5 @@
 import type { ContactGlyphName } from "@/components/contact/icons";
-import { buildSite, DUMMY, SITE_CONTENT, type SiteData } from "@/lib/site";
+import { buildSite, SITE_CONTENT, type SiteData } from "@/lib/site";
 
 /**
  * Contact page copy (Figma "Tech Vedha — Contact · Dark / Light").
@@ -114,26 +114,27 @@ export const CONTACT_CONTENT = {
     linkHref: "/#services",
   },
   /**
-   * PLACEHOLDER COMPANY DETAILS — shown exactly as in the design until the real values are confirmed.
-   * Replace each value before launch; `null` registration numbers render as "To add".
+   * DUMMY COMPANY DETAILS — consistent sample values shown until the real ones are saved in the admin
+   * (Website pages → Contact). Registration numbers are zero-filled on purpose so none can be mistaken for a
+   * real company's. A `null` registration number renders as "To add".
    */
   company: {
-    city: "India · city to add",
-    address: "Office address to add",
+    city: "New Delhi, India",
+    address: "2nd Floor, Sample Tower, Connaught Place, New Delhi 110001",
     /** Shorter form for the map pin label. */
-    addressShort: "Address to add",
-    hours: "Working hours to add",
+    addressShort: "Connaught Place, New Delhi",
+    hours: "Mon–Sat · 10:00 AM – 7:00 PM IST",
     /** Used for the "Get directions" link; switch to the full street address once confirmed. */
-    mapsQuery: "Tech Vedha India",
+    mapsQuery: "Connaught Place, New Delhi",
     registration: [
-      { label: "Registered name", value: null },
-      { label: "GSTIN", value: null },
-      { label: "UDYAM / MSME", value: null },
-      { label: "CIN", value: null },
-      { label: "Certifications", value: null },
+      { label: "Registered name", value: "Tech Vedha Private Limited" },
+      { label: "GSTIN", value: "07AAAAA0000A0Z0" },
+      { label: "UDYAM / MSME", value: "UDYAM-DL-00-0000000" },
+      { label: "CIN", value: "U00000DL0000PTC000000" },
+      { label: "Certifications", value: "Shared on request" },
     ] as { label: string; value: string | null }[],
   },
-  /** Shown instead of the phone number while it is still the dummy one in lib/site.ts. */
+  /** Shown instead of the phone number only when none is set at all. */
   phonePlaceholder: "+91 · number to add",
   /** Rows in the hero's brand card. Email and phone values come from the site settings. */
   quickContacts: [
@@ -184,8 +185,7 @@ export type ContactFormCopy = ContactContent["form"];
 /** The Contact page data, with email / phone / WhatsApp values and links taken from the site settings. */
 export function buildContact(content: ContactContent, site: SiteData) {
   const { SITE, EMAIL_URL, PHONE_URL, WHATSAPP_URL } = site;
-  /** The phone number may still be the dummy one, so show the design's placeholder until a real one is set. */
-  const phoneLabel = SITE.phone && SITE.phone !== DUMMY.phone ? SITE.phone : content.phonePlaceholder;
+  const phoneLabel = SITE.phone || content.phonePlaceholder;
   const linkOf = (icon: ContactGlyphName) =>
     icon === "mail" ? EMAIL_URL : icon === "chat" ? WHATSAPP_URL : icon === "phone" ? PHONE_URL : undefined;
   const valueOf = (icon: ContactGlyphName, value: string) =>

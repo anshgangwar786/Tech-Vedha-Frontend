@@ -8,7 +8,9 @@ if (process.env.NODE_ENV === "production") {
   const problems = [
     !value("ADMIN_API_URL") && "ADMIN_API_URL is not set: the site serves only its bundled copy and enquiries fall back to email",
     !value("REVALIDATE_SECRET") && "REVALIDATE_SECRET is not set: admin saves, previews and enquiry forms will be refused",
-    (!value("SITE_URL") || value("SITE_URL").includes("example.com")) &&
+    // On Vercel an unset SITE_URL falls back to the project's production domain (lib/site.ts → siteOrigin).
+    !process.env.VERCEL_PROJECT_PRODUCTION_URL &&
+      (!value("SITE_URL") || value("SITE_URL").includes("example.com")) &&
       "SITE_URL is not set: canonical URLs, sitemap.xml and robots.txt point at https://www.example.com",
     process.env.VERCEL_ENV === "production" &&
       ["ADMIN_API_URL", "SITE_URL"].some((name) => isLocal(value(name))) &&

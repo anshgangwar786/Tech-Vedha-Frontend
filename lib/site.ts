@@ -8,7 +8,8 @@
 
 /**
  * Contact defaults (each can be overridden with an env var, and then in the admin). The email comes from the
- * Figma design; the phone number and site URL are still PLACEHOLDERS — replace them before launch.
+ * Figma design; the phone number is a DUMMY shown (and linked for call / WhatsApp) until the real one is saved
+ * in the admin (Website pages → Site & menus). siteUrl is only used off Vercel when SITE_URL is unset.
  */
 export const DUMMY = {
   email: "info@techvedha.tech",
@@ -17,6 +18,22 @@ export const DUMMY = {
 } as const;
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
+
+/**
+ * Public origin of this website (canonical URLs, sitemap.xml, robots.txt, Open Graph, JSON-LD):
+ *   1. SITE_URL, when set (set it once a custom domain is live).
+ *   2. On Vercel: this project's production domain, which Vercel provides automatically.
+ *   3. Local dev: http://localhost:3002.
+ */
+function siteOrigin(): string {
+  const configured = (process.env.SITE_URL ?? "").trim().replace(/^['"]|['"]$/g, "").trim();
+  if (configured) return configured.replace(/\/+$/, "");
+  // NEXT_PUBLIC_ copy: Vercel exposes it to the browser bundle too, where the plain one is undefined.
+  const vercelDomain =
+    process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelDomain) return `https://${vercelDomain}`;
+  return process.env.NODE_ENV === "production" ? DUMMY.siteUrl : "http://localhost:3002";
+}
 
 export type NavLink = { label: string; href: string };
 
@@ -118,7 +135,7 @@ export function buildSite(content: SiteContent) {
     name: content.name,
     tagline: content.tagline,
     description: content.description,
-    url: (process.env.SITE_URL || DUMMY.siteUrl).replace(/\/$/, ""),
+    url: siteOrigin(),
     email: content.email,
     phone: content.phone,
     locale: "en_IN",
