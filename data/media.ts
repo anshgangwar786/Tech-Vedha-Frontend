@@ -23,7 +23,6 @@ export const MEDIA: Readonly<Record<string, string>> = {
   "/home/stories/youtube-seo.jpg": "https://navajowhite-octopus-630288.hostingersite.com/tech-vedha/media/1795581900120_f1b751ae_youtube-seo.jpg",
   "/home/wave-dark.svg": "https://navajowhite-octopus-630288.hostingersite.com/tech-vedha/media/1795581901555_3fa893f9_wave-dark.svg",
   "/home/wave-light.svg": "https://navajowhite-octopus-630288.hostingersite.com/tech-vedha/media/1795581902694_6ce2028a_wave-light.svg",
-  "/icons/success.svg": "https://navajowhite-octopus-630288.hostingersite.com/tech-vedha/media/1795581904173_48a8e561_success.svg",
   "/services/campaign-chart.svg": "https://navajowhite-octopus-630288.hostingersite.com/tech-vedha/media/1795581905481_f6c930d4_campaign-chart.svg",
   "/tools/canva.svg": "https://navajowhite-octopus-630288.hostingersite.com/tech-vedha/media/1795581906801_6202eb50_canva.svg",
   "/tools/google-business-profile.svg": "https://navajowhite-octopus-630288.hostingersite.com/tech-vedha/media/1795581907952_02db1ccd_google-business-profile.svg",
