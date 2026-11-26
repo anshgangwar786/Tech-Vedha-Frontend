@@ -236,8 +236,11 @@ export function buildContact(content: ContactContent, site: SiteData) {
   /** Email, WhatsApp and phone rows link to the contact settings; any other row uses its own link (or none). */
   const linkOf = (icon: ContactGlyphName, link: string): string | undefined =>
     icon === "mail" ? EMAIL_URL : icon === "chat" ? WHATSAPP_URL : icon === "phone" ? PHONE_URL : link.trim() || undefined;
+  // A WhatsApp row that holds a number shows the WhatsApp number in effect (the one its link opens).
+  const whatsappNumber = `+${WHATSAPP_URL.replace(/\D/g, "")}`;
+  const isNumber = (value: string) => /^\+?[\d\s().-]+$/.test(value.trim()) && value.replace(/\D/g, "").length >= 7;
   const valueOf = (icon: ContactGlyphName, value: string) =>
-    icon === "mail" ? SITE.email : icon === "phone" ? phoneLabel : value;
+    icon === "mail" ? SITE.email : icon === "phone" ? phoneLabel : icon === "chat" && isNumber(value) ? whatsappNumber : value;
   // A row or card without a title is a half-filled draft: left out.
   const filled = (text: string) => text.trim() !== "";
   const { hero, company } = content;
