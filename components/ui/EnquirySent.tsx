@@ -5,6 +5,7 @@ import ThemedImage from "@/components/ui/ThemedImage";
 import { Check } from "lucide-react";
 import ButtonLink from "@/components/ui/ButtonLink";
 import { SENT_COPY, type SentCopy } from "@/data/forms";
+import { hasPicture } from "@/lib/themedImage";
 
 /** How long the confirmation stays up before the form is cleared for a new enquiry. */
 const RESET_AFTER_MS = 30_000;
@@ -58,7 +59,7 @@ export default function EnquirySent({
 }) {
   // A custom icon uploaded in the admin replaces the built-in tick. The old bundled success.svg (still saved in some
   // content) counts as "no custom icon". Image addresses are checked on the server (server/content.ts).
-  const customIcon = copy.icon?.src && !copy.icon.src.endsWith("success.svg") ? copy.icon : null;
+  const customIcon = hasPicture(copy.icon) && !copy.icon.src.endsWith("success.svg") ? copy.icon : null;
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {

@@ -106,9 +106,10 @@ Contact settings live in the `site` document and are edited from the dashboard h
 `ContactSettingsCard`) or by changing the Envelope / Phone / Speech-bubble rows of the Contact page (admin:
 `app/lib/server/contactSettingsSync.ts`); both save to `site` and revalidate `jmt-page-site`, so every page updates.
 
-Every content image `{ src, alt, width, height, focus }` may also carry `darkSrc` (a Media Library URL shown in dark
-mode instead; kept by mergeContent when it is a safe URL, dropped by the web's guardImages when its host isn't in
-MEDIA_HOSTNAMES). web: `components/ui/ThemedImage.tsx` renders both and lets the theme pick one by CSS.
+Every content image `{ src, alt, width, height, focus }` may also carry `darkSrc`: `src` is the light-mode picture,
+`darkSrc` the dark-mode one, and when only one is set it is used in both themes (neither = the card's drawing).
+mergeContent keeps a safe `darkSrc` (also on its own, without `src`); the web's guardImages drops one whose host isn't
+in MEDIA_HOSTNAMES. web: `lib/themedImage.ts` (hasPicture, themePictures) and `components/ui/ThemedImage.tsx`.
 
 ```
 key                 admin editor                              web getter (server/content.ts)  pages using it

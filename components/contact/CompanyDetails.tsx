@@ -4,6 +4,7 @@ import SectionHeading from "@/components/contact/SectionHeading";
 import { BRAND_GRADIENT, MICRO, SECTION_TIGHT } from "@/components/ui/styles";
 import { cx } from "@/lib/cx";
 import { getContact, getSite } from "@/server/content";
+import { hasPicture } from "@/lib/themedImage";
 
 /* Stylised street map from the Figma frame (834 × 440), drawn as one SVG so it costs no requests. */
 const ROADS_H = [90, 230, 350];
@@ -64,7 +65,7 @@ export default async function CompanyDetails() {
 
         <div className="mt-10 grid items-start gap-4 sm:mt-14 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
           <div data-reveal="left" className="reveal relative isolate h-[300px] overflow-hidden rounded-3xl border border-line bg-[#eef4fc] sm:h-[440px] dark:bg-surface">
-            {copy.mapImage.src ? (
+            {hasPicture(copy.mapImage) ? (
               // An uploaded map picture (Contact → Office and company details) replaces the drawn street map.
               <ThemedImage image={copy.mapImage} fill sizes="(min-width: 1024px) 760px, 100vw" className="object-cover" />
             ) : (

@@ -23,8 +23,13 @@ describe("mergeContent — dark-mode images", () => {
     expect(out.image.darkSrc).toBe("");
   });
 
-  it("falls back to the default image (no dark picture) when src is unusable", () => {
-    const out = mergeContent({ card: { image: { src: "", alt: "", width: 0, height: 0, darkSrc: DARK } } }, DEFAULTS);
+  it("keeps a dark-only picture (no light picture) with its alt text", () => {
+    const out = mergeContent({ card: { image: { src: "", alt: "Dark", width: 0, height: 0, darkSrc: DARK } } }, DEFAULTS);
+    expect(out.card.image).toEqual({ src: "", alt: "Dark", width: 0, height: 0, darkSrc: DARK });
+  });
+
+  it("falls back to the default image when neither picture is usable", () => {
+    const out = mergeContent({ card: { image: { src: "bad url", alt: "", width: 0, height: 0, darkSrc: "also bad" } } }, DEFAULTS);
     expect(out.card.image).toEqual(DEFAULTS.card.image);
   });
 });

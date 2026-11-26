@@ -4,6 +4,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { BRAND_GRADIENT } from "@/components/ui/styles";
 import { cx } from "@/lib/cx";
 import { getHome } from "@/server/content";
+import { hasPicture } from "@/lib/themedImage";
 
 const card =
   "relative flex flex-col overflow-hidden rounded-3xl border p-6 transition duration-300 hover:-translate-y-1 sm:p-7";
@@ -123,7 +124,7 @@ export default async function Pillars() {
             )}
           >
             <p className={number}>{secure.number}</p>
-            {secure.image.src ? (
+            {hasPicture(secure.image) ? (
               // Uploaded picture in place of the lock drawing (Homepage → Four pillars → Card 04).
               <div className="relative mx-auto mt-2 size-[116px] overflow-hidden rounded-full border border-white/25">
                 <ThemedImage image={secure.image} fill sizes="116px" className="object-cover" />

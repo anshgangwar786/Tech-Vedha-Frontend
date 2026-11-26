@@ -4,6 +4,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { AuditChecklist, DataVault, Firewall, ThreatMonitor } from "@/components/home/security/SecurityVisuals";
 import { SECURITY_VISUALS } from "@/data/home";
 import { getHome } from "@/server/content";
+import { hasPicture } from "@/lib/themedImage";
 
 const VISUALS = [DataVault, Firewall, ThreatMonitor, AuditChecklist];
 
@@ -30,7 +31,7 @@ export default async function Security() {
                 key={index}
                 className="flex flex-col gap-5 rounded-[20px] border border-line bg-surface px-3.5 pt-3.5 pb-6 transition duration-300 hover:-translate-y-1 hover:border-brand/60"
               >
-                {image.src ? (
+                {hasPicture(image) ? (
                   <div className="relative h-[184px] overflow-hidden rounded-[14px] border border-line bg-bg">
                     <ThemedImage
                       image={image}

@@ -10,6 +10,7 @@ import { SERVICE_SCENES, withCount, type HomeServiceItem } from "@/data/home";
 import { countWord } from "@/data/services";
 import { slugify } from "@/lib/content/serviceSlugs";
 import { getHome } from "@/server/content";
+import { hasPicture } from "@/lib/themedImage";
 
 type CardImage = { src: string; alt: string; width: number; height: number };
 type Card = {
@@ -23,7 +24,7 @@ type Card = {
 };
 
 /** The card's drawing; a card with an uploaded image shows the image instead (ServicesShowcase). */
-const sceneOf = (card: Card, drawing: React.ReactNode) => (card.image.src ? null : drawing);
+const sceneOf = (card: Card, drawing: React.ReactNode) => (hasPicture(card.image) ? null : drawing);
 
 /** What the switcher needs from a card. `anchor` makes links like /#service-<anchor> open it. */
 const toItem = (card: Card, anchor: string): HomeServiceItem => ({
@@ -33,7 +34,7 @@ const toItem = (card: Card, anchor: string): HomeServiceItem => ({
   title: card.title,
   summary: card.summary,
   href: card.buttonLink.trim(),
-  image: card.image.src ? card.image : null,
+  image: hasPicture(card.image) ? card.image : null,
 });
 
 export default async function Services() {

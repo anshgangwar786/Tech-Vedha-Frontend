@@ -5,6 +5,7 @@ import ProcessStepper from "@/components/home/process/ProcessStepper";
 import { processVisuals } from "@/components/home/process/ProcessVisuals";
 import { PROCESS_VISUALS } from "@/data/home";
 import { getHome, getSite } from "@/server/content";
+import { hasPicture } from "@/lib/themedImage";
 
 /** Six-step process stepper plus the "Ready for step one?" banner (Homepage → How we work). */
 export default async function Process() {
@@ -16,7 +17,7 @@ export default async function Process() {
   const steps = process.steps.filter((step) => step.title.trim());
   const visuals = steps.map((step, index) => (
     <Fragment key={index}>
-      {step.image.src ? (
+      {hasPicture(step.image) ? (
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
           <ThemedImage image={step.image} fill sizes="460px" className="object-cover" />
         </div>

@@ -7,6 +7,7 @@ import { SERVICES, type Service } from "@/data/services";
 import { STORY_TEMPLATE, storiesSection, type StoriesContent } from "@/data/stories";
 import { slugify } from "@/lib/content/serviceSlugs";
 import type { LucideIcon } from "lucide-react";
+import { hasPicture } from "@/lib/themedImage";
 
 export type { TechTool } from "@/data/service-tools";
 
@@ -1515,7 +1516,7 @@ export function toServicePage(content: ServicePageContent, service: Service): Re
       cards: deliverables.cards
         .filter((card) => text(card.title))
         .map((card) => ({
-          image: card.image?.src ? card.image : null,
+          image: hasPicture(card.image) ? card.image : null,
           visual: isDrawing(card.visual) ? card.visual : null,
           checklist: lines(card.checklist),
           title: text(card.title),

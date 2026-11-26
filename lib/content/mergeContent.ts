@@ -31,7 +31,10 @@ export function isPlainObject(value: unknown): value is PlainObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** An image: { src, alt, width, height, focus?, darkSrc? } (darkSrc = picture shown in dark mode instead). */
+/**
+ * An image: { src, alt, width, height, focus?, darkSrc? }. `src` is the light-mode picture and `darkSrc` the
+ * dark-mode one; when only one is set it is used in both themes.
+ */
 export function isImageValue(value: unknown): value is PlainObject {
   return (
     isPlainObject(value) &&
@@ -191,11 +194,14 @@ function merge(
       out[k] = k in raw ? merge(raw[k], v, [...path, k], locked, k, templates) : v;
     }
     if (isImageValue(def)) {
-      // An image with an unusable URL falls back to the default image.
-      if (typeof out.src !== "string" || !isSafeUrl(out.src)) return def;
-      // Optional dark-mode picture: kept when it is a safe URL (even where the default has no such key).
-      const dark = raw.darkSrc;
-      if (typeof dark === "string" && dark && isSafeUrl(dark)) out.darkSrc = dark.slice(0, MAX_STRING_LENGTH);
+      // Dark-mode picture: kept when it is a safe URL (even where the default has no such key).
+      const dark = typeof raw.darkSrc === "string" && raw.darkSrc && isSafeUrl(raw.darkSrc) ? raw.darkSrc.slice(0, MAX_STRING_LENGTH) : "";
+      // A light picture with an unusable URL falls back to the default image (keeping a dark-only picture).
+      if (typeof out.src !== "string" || !isSafeUrl(out.src)) {
+        if (!dark) return def;
+        return { ...def, alt: out.alt, ...(typeof out.focus === "string" ? { focus: out.focus } : {}), darkSrc: dark };
+      }
+      if (dark) out.darkSrc = dark;
       else if ("darkSrc" in out) out.darkSrc = "";
     }
     return out;
