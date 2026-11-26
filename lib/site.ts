@@ -186,6 +186,10 @@ export const SITE_CONTENT = {
     companyTitle: "Company",
     companyLinks: NAV,
     contactTitle: "Contact",
+    /** Text of the call link (opens the phone dialer). Empty = the phone number itself. */
+    callLabel: "",
+    /** Text of the WhatsApp link (opens a chat). Empty = no WhatsApp link. */
+    whatsappLabel: "Chat on WhatsApp",
     /** {year} = current year, {name} = brand name. */
     copyright: "© {year} {name}",
     /** Links in the bottom row (e.g. Privacy, Terms). Empty = none. */

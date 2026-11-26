@@ -9,7 +9,7 @@ const footerLink = "block py-2.5 text-[15px] leading-snug text-fg-muted transiti
 
 export default async function Footer() {
   // Every word and link here is the footer's own (Site & menus → Footer); email and name are contact settings.
-  const { EMAIL_URL, SITE, FOOTER, WORDMARK } = await getSite();
+  const { EMAIL_URL, PHONE_URL, WHATSAPP_URL, SITE, FOOTER, WORDMARK } = await getSite();
   return (
     <footer className="overflow-hidden border-t border-line bg-surface pt-14 sm:pt-[72px] dark:bg-bg-deep">
       <div className="container-site">
@@ -51,6 +51,16 @@ export default async function Footer() {
               <a href={EMAIL_URL} className={cx(footerLink, "break-all")}>
                 {SITE.email}
               </a>
+              {SITE.phone.trim() && (
+                <a href={PHONE_URL} className={footerLink}>
+                  {FOOTER.callLabel.trim() || SITE.phone}
+                </a>
+              )}
+              {FOOTER.whatsappLabel.trim() && (
+                <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={footerLink}>
+                  {FOOTER.whatsappLabel}
+                </a>
+              )}
             </div>
           </div>
         </div>
