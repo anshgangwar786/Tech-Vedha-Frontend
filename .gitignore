@@ -55,3 +55,6 @@ service-account*.json
 *.db
 *.sql
 *.dump
+
+# Test coverage reports
+coverage/
