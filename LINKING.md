@@ -208,6 +208,10 @@ Enquiries → Leads
 
 Media
 ├─ admin: /dashboard/media → FTPS upload to HOSTINGER_MEDIA_PATH → URL HOSTINGER_MEDIA_URL/<file>
+│    every upload from an image field goes the same way (Upload button → /api/media → Hostinger)
+├─ default pictures: also in the Hostinger media folder (admin: npm run upload:frontend-media), listed in
+│    web: data/media.ts (MEDIA map, MEDIA_HOST); the bundled content points at those URLs, so admin previews show them
+├─ web: MEDIA_HOST is always an allowed image host (next.config.ts, lib/adminApi.ts) even without MEDIA_HOSTNAMES
 └─ web: an image field accepts a site path (/home/…) or https on MEDIA_HOSTNAMES; anything else →
         bundled image (server/content.ts → guardImages, every page)
 

@@ -1,3 +1,4 @@
+import { media } from "@/data/media";
 import type { ContactSectionContent } from "@/components/home/Contact";
 import { ENQUIRY_FORM_COPY, formCopy } from "@/data/forms";
 import { serviceIcon } from "@/data/service-icons";
@@ -135,7 +136,7 @@ export const DELIVERABLE_VISUALS_COPY: DeliverableVisualsCopy = {
       }
     ],
     chart: {
-      src: "/services/campaign-chart.svg",
+      src: media("/services/campaign-chart.svg"),
       alt: "",
       width: 364,
       height: 64

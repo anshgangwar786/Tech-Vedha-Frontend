@@ -1,3 +1,5 @@
+import { media } from "@/data/media";
+
 /**
  * Client stories (the testimonial wall). The homepage and each service page keep their OWN copy of the section in
  * their content (storiesSection() makes a fresh copy), so stories can differ from page to page.
@@ -55,7 +57,7 @@ export const STORIES: Story[] = [
     stat: "",
     statLabel: "",
     quote: "Our Instagram ads finally reach people near the store, and enquiries now come straight into WhatsApp. We reply from one place instead of juggling DMs, calls and forms.",
-    avatar: "/home/avatars/homedecor.jpg",
+    avatar: media("/home/avatars/homedecor.jpg"),
     role: "Owner",
     company: "Home décor store",
     category: "Marketing",
@@ -63,7 +65,7 @@ export const STORIES: Story[] = [
   {
     kind: "photo",
     column: "left",
-    photo: "/home/stories/app-launch.jpg",
+    photo: media("/home/stories/app-launch.jpg"),
     photoAlt: "Founder of a grocery delivery startup in their warehouse",
     stat: "",
     statLabel: "",
@@ -81,7 +83,7 @@ export const STORIES: Story[] = [
     stat: "4 → 1",
     statLabel: "vendors to manage",
     quote: "Design, app, software and marketing — all handled by one team with one invoice.",
-    avatar: "/home/avatars/showroom.jpg",
+    avatar: media("/home/avatars/showroom.jpg"),
     role: "Owner",
     company: "Multi-brand showroom",
     category: "Apps",
@@ -89,7 +91,7 @@ export const STORIES: Story[] = [
   {
     kind: "photo",
     column: "middle",
-    photo: "/home/stories/3d-showroom.jpg",
+    photo: media("/home/stories/3d-showroom.jpg"),
     photoAlt: "Furniture showroom owner holding a tablet with a 3D floor plan",
     stat: "",
     statLabel: "",
@@ -107,7 +109,7 @@ export const STORIES: Story[] = [
     stat: "",
     statLabel: "",
     quote: "We came for floor plans and stayed for everything else. The same team drew our villas in 2D and 3D, prepared the BOQ, built the booking app and ran the launch campaign. One WhatsApp group replaced four vendors and endless follow-ups.",
-    avatar: "/home/avatars/builder.jpg",
+    avatar: media("/home/avatars/builder.jpg"),
     role: "Director",
     company: "Residential builder",
     category: "CAD",
@@ -120,7 +122,7 @@ export const STORIES: Story[] = [
     stat: "",
     statLabel: "",
     quote: "Patients book appointments in the app and get WhatsApp reminders. The team tested it on every phone our patients use before launch.",
-    avatar: "/home/avatars/clinic.jpg",
+    avatar: media("/home/avatars/clinic.jpg"),
     role: "Clinic administrator",
     company: "Healthcare clinic",
     category: "Apps",
@@ -133,7 +135,7 @@ export const STORIES: Story[] = [
     stat: "3 stores",
     statLabel: "on one billing system",
     quote: "Billing, stock and staff logins run on one system now — no more end-of-day spreadsheets.",
-    avatar: "/home/avatars/retail.jpg",
+    avatar: media("/home/avatars/retail.jpg"),
     role: "Managing partner",
     company: "Electronics retail chain",
     category: "Software",
@@ -146,7 +148,7 @@ export const STORIES: Story[] = [
     stat: "",
     statLabel: "",
     quote: "We chose the subscription model because our processes keep changing. Every new requirement gets added without a new contract, and the security checks run in the background.",
-    avatar: "/home/avatars/manufacturing.jpg",
+    avatar: media("/home/avatars/manufacturing.jpg"),
     role: "Operations head",
     company: "Manufacturing unit",
     category: "Software",
@@ -159,7 +161,7 @@ export const STORIES: Story[] = [
     stat: "",
     statLabel: "",
     quote: "They turn our sketches into accurate CAD drawings quickly, and the bill of quantities matches the drawings line for line, which makes contractor quotes far easier.",
-    avatar: "/home/avatars/studio.jpg",
+    avatar: media("/home/avatars/studio.jpg"),
     role: "Architect",
     company: "Interior design studio",
     category: "CAD",
@@ -167,7 +169,7 @@ export const STORIES: Story[] = [
   {
     kind: "photo",
     column: "right",
-    photo: "/home/stories/youtube-seo.jpg",
+    photo: media("/home/stories/youtube-seo.jpg"),
     photoAlt: "Clothing boutique owner smiling in their store",
     stat: "",
     statLabel: "",

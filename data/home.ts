@@ -1,3 +1,4 @@
+import { media } from "@/data/media";
 import { ENQUIRY_FORM_COPY, formCopy } from "@/data/forms";
 import { STORY_TEMPLATE, storiesSection } from "@/data/stories";
 
@@ -57,8 +58,8 @@ export const HOME_SEO = {
 export const HERO = {
   /** Decorative light wave behind the hero, one per theme. */
   background: {
-    dark: { src: "/home/wave-dark.svg", alt: "", width: 1831, height: 1183 },
-    light: { src: "/home/wave-light.svg", alt: "", width: 1831, height: 1183 },
+    dark: { src: media("/home/wave-dark.svg"), alt: "", width: 1831, height: 1183 },
+    light: { src: media("/home/wave-light.svg"), alt: "", width: 1831, height: 1183 },
   },
   eyebrow: "IT solutions · India and abroad",
   titleLead: "Build for",
@@ -112,8 +113,8 @@ export const SERVICE_SCENES = {
     chartTitle: "Enquiries",
     chartPeriod: "Last 30 days",
     chart: {
-      dark: { src: "/home/enquiries-chart-dark.svg", alt: "", width: 448, height: 93 },
-      light: { src: "/home/enquiries-chart-light.svg", alt: "", width: 448, height: 93 },
+      dark: { src: media("/home/enquiries-chart-dark.svg"), alt: "", width: 448, height: 93 },
+      light: { src: media("/home/enquiries-chart-light.svg"), alt: "", width: 448, height: 93 },
     },
     weeks: ["Week 1", "Week 2", "Week 3", "Week 4"],
     /** reach = length of the bar, 0–100. */

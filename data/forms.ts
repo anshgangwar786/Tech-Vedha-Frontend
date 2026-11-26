@@ -1,3 +1,5 @@
+import { media } from "@/data/media";
+
 /**
  * Starter copy of the two enquiry forms. Every page that shows a form stores its OWN copy of one of these in its
  * content (e.g. home.contact.form, about.contact.form, contact.form, site.projectForm), so the labels, the service
@@ -39,7 +41,7 @@ export type ValidationCopy = typeof VALIDATION_COPY;
 
 /** "Enquiry sent" pop-up shown after a form is sent. */
 export const SENT_COPY = {
-  icon: { src: "/icons/success.svg", alt: "", width: 64, height: 64 },
+  icon: { src: media("/icons/success.svg"), alt: "", width: 64, height: 64 },
   title: "Enquiry sent",
   text: "Thank you. One person from our team will reply with next steps, and a written plan follows the discovery call.",
   homeLabel: "Back to home",

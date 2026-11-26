@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { media } from "@/data/media";
 import { SERVICES as BUNDLED_SERVICES, type Service } from "@/data/services";
 import { SITE, type SiteData } from "@/lib/site";
 
@@ -37,7 +38,7 @@ const ORGANIZATION_ID = `${SITE.url}/#organization`;
 export function organizationJsonLd(
   site: SiteInfo = SITE,
   SERVICES: Service[] = BUNDLED_SERVICES,
-  logo = "/brand/logo-light.png",
+  logo = media("/brand/logo-light.png"),
 ): JsonLd {
   const SITE = site;
   return {

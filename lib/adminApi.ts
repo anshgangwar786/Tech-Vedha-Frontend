@@ -2,6 +2,8 @@
 // (server/content.ts) and enquiries are posted to it (app/actions/enquiry.ts).
 // Server-only — these values are never sent to the browser.
 
+import { MEDIA_HOST } from "@/data/media";
+
 /** Trims whitespace, surrounding quotes and trailing slashes from an env value. */
 const clean = (value: string | null | undefined) =>
   (value ?? "").trim().replace(/^['"]|['"]$/g, "").trim().replace(/\/+$/, "");
@@ -37,12 +39,14 @@ export function sharedSecret(): string {
 export const ADMIN_TIMEOUT_MS = 10_000;
 
 /** Hosts allowed for images set in the admin (same env value as next.config.ts). */
-const MEDIA_HOSTNAMES = new Set(
-  (process.env.MEDIA_HOSTNAMES ?? "")
+const MEDIA_HOSTNAMES = new Set([
+  // The Hostinger media folder holds the site's default pictures, so it is always allowed.
+  MEDIA_HOST.toLowerCase(),
+  ...(process.env.MEDIA_HOSTNAMES ?? "")
     .split(",")
     .map((host) => host.trim().toLowerCase())
     .filter(Boolean),
-);
+]);
 
 /** A site path ("/home/…") or an https URL on a MEDIA_HOSTNAMES host: safe to hand to next/image. */
 export function isAllowedImageSrc(src: string): boolean {

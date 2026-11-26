@@ -1,3 +1,4 @@
+import { media } from "@/data/media";
 import { CONTACT_FORM_COPY, formCopy } from "@/data/forms";
 
 /**
@@ -142,8 +143,8 @@ export const SITE_CONTENT = {
   skipLink: "Skip to content",
   /** Logo at the top left of every page (both theme versions). */
   logo: {
-    dark: { src: "/brand/logo-dark.png", alt: "", width: 2000, height: 202 },
-    light: { src: "/brand/logo-light.png", alt: "", width: 2000, height: 202 },
+    dark: { src: media("/brand/logo-dark.png"), alt: "", width: 2000, height: 202 },
+    light: { src: media("/brand/logo-light.png"), alt: "", width: 2000, height: 202 },
     a11y: { linkLabel: "{name} home" },
   },
   /** Top bar, the "Services" drop-down and the phone menu. */

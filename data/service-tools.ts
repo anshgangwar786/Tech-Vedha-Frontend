@@ -1,6 +1,7 @@
 // Logos of the tools in a service page's "Tech stack". Tools are typed by name in the admin; a name found here shows
 // its logo (and brand colour), any other name shows a letter badge. Names are matched without regard to case.
 
+import { media } from "@/data/media";
 import type { IconType } from "react-icons";
 import { FaAws, FaLinkedin } from "react-icons/fa";
 import {
@@ -81,7 +82,7 @@ const TOOL_LOGOS: ReadonlyMap<string, Logo> = new Map<string, Logo>([
   ["gh actions", { icon: SiGithubactions, color: "#2088ff" }],
   ["search console", { icon: SiGooglesearchconsole, color: "#458cf5" }],
   ["semrush", { icon: SiSemrush, color: "#ff642d" }],
-  ["business profile", { image: "/tools/google-business-profile.svg", color: "#4285f4" }],
+  ["business profile", { image: media("/tools/google-business-profile.svg"), color: "#4285f4" }],
   ["ga4", { icon: SiGoogleanalytics, color: "#e37400" }],
   ["google ads", { icon: SiGoogleads, color: "#4285f4" }],
   ["meta ads", { icon: SiMeta, color: "#0467df" }],
@@ -89,7 +90,7 @@ const TOOL_LOGOS: ReadonlyMap<string, Logo> = new Map<string, Logo>([
   ["linkedin ads", { icon: FaLinkedin, color: "#0a66c2" }],
   ["instagram", { icon: SiInstagram, color: "#e4405f" }],
   ["facebook", { icon: SiFacebook, color: "#0866ff" }],
-  ["canva", { image: "/tools/canva.svg", color: "#00c4cc" }],
+  ["canva", { image: media("/tools/canva.svg"), color: "#00c4cc" }],
   ["buffer", { icon: SiBuffer }],
   ["mailchimp", { icon: SiMailchimp, color: "#ffe01b" }],
   ["brevo", { icon: SiBrevo, color: "#0b996e" }],

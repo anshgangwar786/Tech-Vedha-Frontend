@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { MEDIA_HOST } from "./data/media";
 
 // Production build/start: warn (never fail) when the settings that link this site to Tech-Vedha-Admin are missing.
 // Without them the site still works, but silently: bundled copy only, no leads/previews, example.com canonicals.
@@ -32,10 +33,16 @@ const SECURITY_HEADERS = [
  * Hosts of images uploaded through Tech-Vedha-Admin's Media Library (comma-separated, e.g. "media.techvedha.tech").
  * Must match MEDIA_HOSTNAMES used by server/content.ts, which drops image URLs on any other host.
  */
-const MEDIA_HOSTNAMES = (process.env.MEDIA_HOSTNAMES ?? "")
-  .split(",")
-  .map((host) => host.trim())
-  .filter(Boolean);
+const MEDIA_HOSTNAMES = [
+  ...new Set([
+    // The Hostinger media folder holds the site's default pictures, so it is always allowed.
+    MEDIA_HOST,
+    ...(process.env.MEDIA_HOSTNAMES ?? "")
+      .split(",")
+      .map((host) => host.trim())
+      .filter(Boolean),
+  ]),
+];
 
 /** Files in public/ are not content-hashed: cache for a day, serve stale for a week while revalidating. */
 const STATIC_ASSET_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
