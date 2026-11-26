@@ -77,9 +77,10 @@ const IMAGE_FIELD_KEYS = new Set(["avatar", "photo"]);
 
 function guardImages(value: unknown, def: unknown, templates: ListTemplates = {}, path: (string | number)[] = []): unknown {
   if (isImageValue(def)) {
-    return isPlainObject(value) && typeof value.src === "string" && (value.src === "" || isAllowedImageSrc(value.src))
-      ? value
-      : def;
+    if (!(isPlainObject(value) && typeof value.src === "string" && (value.src === "" || isAllowedImageSrc(value.src)))) return def;
+    // The dark-mode picture goes to next/image too: dropped (light picture in both themes) when its host isn't allowed.
+    if (typeof value.darkSrc === "string" && value.darkSrc && !isAllowedImageSrc(value.darkSrc)) return { ...value, darkSrc: "" };
+    return value;
   }
   const key = path[path.length - 1];
   if (typeof def === "string" && (IMAGE_PATH.test(def) || (typeof key === "string" && IMAGE_FIELD_KEYS.has(key)))) {

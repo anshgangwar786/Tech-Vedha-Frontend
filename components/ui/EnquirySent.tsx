@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import { Check } from "lucide-react";
 import ButtonLink from "@/components/ui/ButtonLink";
 import { SENT_COPY, type SentCopy } from "@/data/forms";
@@ -86,9 +86,8 @@ export default function EnquirySent({
     >
       <div className="flex flex-col items-center gap-5 rounded-[28px] border border-line bg-surface px-6 pt-10 pb-9 text-center shadow-[0_40px_80px_-20px_rgb(3_10_23/0.25)] sm:px-10 dark:shadow-[0_40px_80px_-20px_rgb(3_10_23/0.6)]">
         {customIcon ? (
-          <Image
-            src={customIcon.src}
-            alt={customIcon.alt}
+          <ThemedImage
+            image={customIcon}
             width={customIcon.width || 64}
             height={customIcon.height || 64}
             className="size-16 object-contain"

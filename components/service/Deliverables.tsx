@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -36,9 +36,8 @@ export default function Deliverables({ page }: DeliverablesProps) {
                 <div className="absolute inset-x-0 -bottom-1/2 -z-10 h-full bg-[radial-gradient(closest-side,#e6f4ff,#1e9bf0_26%,#1446e0_57%,transparent)] opacity-40 dark:opacity-100" />
                 {/* An uploaded image fills the box; otherwise the chosen drawing, or a checklist of the card's lines. */}
                 {card.image ? (
-                  <Image
-                    src={card.image.src}
-                    alt={card.image.alt}
+                  <ThemedImage
+                    image={card.image}
                     fill
                     sizes="(min-width: 1024px) 600px, 100vw"
                     className="object-cover"

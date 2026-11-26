@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import { CircleCheck } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { AuditChecklist, DataVault, Firewall, ThreatMonitor } from "@/components/home/security/SecurityVisuals";
@@ -32,9 +32,8 @@ export default async function Security() {
               >
                 {image.src ? (
                   <div className="relative h-[184px] overflow-hidden rounded-[14px] border border-line bg-bg">
-                    <Image
-                      src={image.src}
-                      alt={image.alt}
+                    <ThemedImage
+                      image={image}
                       fill
                       sizes="(min-width: 1280px) 300px, (min-width: 640px) 50vw, 85vw"
                       className="object-cover"

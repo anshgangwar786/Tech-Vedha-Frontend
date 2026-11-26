@@ -7,7 +7,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import ButtonLink from "@/components/ui/ButtonLink";
@@ -136,9 +136,8 @@ export default function ServicesShowcase({ scenes, items: SERVICES, exploreLabel
         {active.image ? (
           // An uploaded card image fills the panel under the top bar (Homepage → Services → card → Card image).
           <div key={activeIndex} className="relative aspect-[4/3] w-full animate-scene-in lg:aspect-auto lg:flex-1">
-            <Image
-              src={active.image.src}
-              alt={active.image.alt}
+            <ThemedImage
+              image={active.image}
               fill
               sizes="(min-width: 1024px) 641px, 100vw"
               className="object-cover"

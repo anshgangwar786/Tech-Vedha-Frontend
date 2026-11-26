@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import { Glyph } from "@/components/contact/icons";
 import SectionHeading from "@/components/contact/SectionHeading";
 import { BRAND_GRADIENT, MICRO, SECTION_TIGHT } from "@/components/ui/styles";
@@ -66,7 +66,7 @@ export default async function CompanyDetails() {
           <div data-reveal="left" className="reveal relative isolate h-[300px] overflow-hidden rounded-3xl border border-line bg-[#eef4fc] sm:h-[440px] dark:bg-surface">
             {copy.mapImage.src ? (
               // An uploaded map picture (Contact → Office and company details) replaces the drawn street map.
-              <Image src={copy.mapImage.src} alt={copy.mapImage.alt} fill sizes="(min-width: 1024px) 760px, 100vw" className="object-cover" />
+              <ThemedImage image={copy.mapImage} fill sizes="(min-width: 1024px) 760px, 100vw" className="object-cover" />
             ) : (
               <StreetMap />
             )}

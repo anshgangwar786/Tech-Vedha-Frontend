@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import CtaButtons from "@/components/ui/CtaButtons";
 import ProcessStepper from "@/components/home/process/ProcessStepper";
 import { processVisuals } from "@/components/home/process/ProcessVisuals";
@@ -18,7 +18,7 @@ export default async function Process() {
     <Fragment key={index}>
       {step.image.src ? (
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
-          <Image src={step.image.src} alt={step.image.alt} fill sizes="460px" className="object-cover" />
+          <ThemedImage image={step.image} fill sizes="460px" className="object-cover" />
         </div>
       ) : (
         drawings[index % drawings.length]

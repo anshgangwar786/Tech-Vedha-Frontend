@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import { ArrowUp, Check, Search } from "lucide-react";
 import { SiGoogle, SiGoogleads, SiMailchimp, SiMeta, SiWhatsapp, SiYoutube } from "react-icons/si";
 import type { ChecklistLabels, DeliverableVisual, DeliverableVisualsCopy } from "@/data/service-pages";
@@ -109,7 +109,7 @@ function CampaignDashboard({ copy }: { copy: DeliverableVisualsCopy["campaignDas
             </div>
           ))}
         </dl>
-        <Image src={copy.chart.src} alt={copy.chart.alt} width={copy.chart.width || 364} height={copy.chart.height || 64} unoptimized className="h-16 w-full" />
+        <ThemedImage image={copy.chart} width={copy.chart.width || 364} height={copy.chart.height || 64} unoptimized className="h-16 w-full" />
         <ul className="flex flex-col gap-[7px]">
           {copy.channels.map(({ name, width }, index) => {
             const { icon: Icon, color } = CHANNEL_LOGOS[index % CHANNEL_LOGOS.length];

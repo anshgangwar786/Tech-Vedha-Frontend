@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ThemedImage from "@/components/ui/ThemedImage";
 import { Lock } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { BRAND_GRADIENT } from "@/components/ui/styles";
@@ -126,7 +126,7 @@ export default async function Pillars() {
             {secure.image.src ? (
               // Uploaded picture in place of the lock drawing (Homepage → Four pillars → Card 04).
               <div className="relative mx-auto mt-2 size-[116px] overflow-hidden rounded-full border border-white/25">
-                <Image src={secure.image.src} alt={secure.image.alt} fill sizes="116px" className="object-cover" />
+                <ThemedImage image={secure.image} fill sizes="116px" className="object-cover" />
               </div>
             ) : (
               <div aria-hidden className="relative mx-auto mt-2 grid size-[116px] place-items-center rounded-full border border-white/25">

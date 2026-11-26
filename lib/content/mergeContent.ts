@@ -31,7 +31,7 @@ export function isPlainObject(value: unknown): value is PlainObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** An image: { src, alt, width, height, focus? }. */
+/** An image: { src, alt, width, height, focus?, darkSrc? } (darkSrc = picture shown in dark mode instead). */
 export function isImageValue(value: unknown): value is PlainObject {
   return (
     isPlainObject(value) &&
@@ -190,8 +190,14 @@ function merge(
     for (const [k, v] of Object.entries(def)) {
       out[k] = k in raw ? merge(raw[k], v, [...path, k], locked, k, templates) : v;
     }
-    // An image with an unusable URL falls back to the default image.
-    if (isImageValue(def) && (typeof out.src !== "string" || !isSafeUrl(out.src))) return def;
+    if (isImageValue(def)) {
+      // An image with an unusable URL falls back to the default image.
+      if (typeof out.src !== "string" || !isSafeUrl(out.src)) return def;
+      // Optional dark-mode picture: kept when it is a safe URL (even where the default has no such key).
+      const dark = raw.darkSrc;
+      if (typeof dark === "string" && dark && isSafeUrl(dark)) out.darkSrc = dark.slice(0, MAX_STRING_LENGTH);
+      else if ("darkSrc" in out) out.darkSrc = "";
+    }
     return out;
   }
 

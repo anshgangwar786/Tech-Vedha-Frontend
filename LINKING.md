@@ -102,6 +102,13 @@ admin: `app/lib/content/site-pages.ts` ↔ web: `lib/content/registry.ts`.
 Every page owns ALL of its content: nothing a visitor reads on one page comes from another page's document. Pages
 that show the same kind of section (FAQ, "Let's talk" + enquiry form, client stories, service names) each keep their
 own copy, so each can be edited on its own. Only contact SETTINGS (email, phone, WhatsApp number) are site-wide.
+Contact settings live in the `site` document and are edited from the dashboard home (admin: `app/api/contact-settings`,
+`ContactSettingsCard`) or by changing the Envelope / Phone / Speech-bubble rows of the Contact page (admin:
+`app/lib/server/contactSettingsSync.ts`); both save to `site` and revalidate `jmt-page-site`, so every page updates.
+
+Every content image `{ src, alt, width, height, focus }` may also carry `darkSrc` (a Media Library URL shown in dark
+mode instead; kept by mergeContent when it is a safe URL, dropped by the web's guardImages when its host isn't in
+MEDIA_HOSTNAMES). web: `components/ui/ThemedImage.tsx` renders both and lets the theme pick one by CSS.
 
 ```
 key                 admin editor                              web getter (server/content.ts)  pages using it
