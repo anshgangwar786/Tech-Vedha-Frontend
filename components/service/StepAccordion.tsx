@@ -8,14 +8,18 @@ import type { ProcessTrack } from "@/data/service-pages";
 import { cx } from "@/lib/cx";
 import { stepNumber } from "@/lib/utils";
 
-type StepAccordionProps = { steps: ProcessTrack["steps"] };
+type StepAccordionProps = {
+  steps: ProcessTrack["steps"];
+  /** Screen-reader name of each step's deliverable chips (the page's own copy). */
+  deliverablesLabel: string;
+};
 
 /**
  * Single-open step list where one step is always open (the first by default). Every open body
  * gets the height of the tallest one, so switching steps never changes the list's total height
  * and the page below doesn't shift. Closed bodies stay in the HTML (inert) for search engines.
  */
-export default function StepAccordion({ steps }: StepAccordionProps) {
+export default function StepAccordion({ steps, deliverablesLabel }: StepAccordionProps) {
   const [open, setOpen] = useState(0);
   const [bodyHeight, setBodyHeight] = useState<number | null>(null);
   const bodyRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -38,7 +42,7 @@ export default function StepAccordion({ steps }: StepAccordionProps) {
         const bodyId = `${baseId}-body-${index}`;
         return (
           <li
-            key={step.title}
+            key={`${index}-${step.title}`}
             className={cx(
               "group rounded-[20px] border transition-colors duration-250",
               isOpen ? "border-brand/50 bg-surface-raised" : "border-line bg-surface hover:border-brand/45",
@@ -81,9 +85,9 @@ export default function StepAccordion({ steps }: StepAccordionProps) {
                 className="px-5 pb-5 sm:px-6 sm:pb-6 sm:pl-[84px]"
               >
                 <p className="max-w-[520px] text-base leading-[1.6] text-fg-muted">{step.summary}</p>
-                <ul aria-label="Deliverables" className="mt-3.5 flex flex-wrap gap-2">
-                  {step.deliverables.map((deliverable) => (
-                    <li key={deliverable}>
+                <ul aria-label={deliverablesLabel} className="mt-3.5 flex flex-wrap gap-2">
+                  {step.deliverables.map((deliverable, chipIndex) => (
+                    <li key={`${chipIndex}-${deliverable}`}>
                       <Chip className="border border-line">{deliverable}</Chip>
                     </li>
                   ))}

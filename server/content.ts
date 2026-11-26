@@ -8,7 +8,7 @@
 
 import { cache } from "react";
 import { ADMIN_TIMEOUT_MS, CONTENT_REVALIDATE_SECONDS, HAS_ADMIN, adminUrl, isAllowedImageSrc } from "@/lib/adminApi";
-import { isPlainObject, mergeContent, upgradeLegacyHome } from "@/lib/content/mergeContent";
+import { isImageValue, isPlainObject, mergeContent, patternOf, upgradeLegacyHome, type ListTemplates } from "@/lib/content/mergeContent";
 import {
   CONTENT_DEFAULTS,
   CONTENT_LOCKED,
@@ -23,6 +23,7 @@ import { buildContact } from "@/data/contact";
 import { resolveServicePages, type ResolvedServicePage, type ServicePage } from "@/data/service-pages";
 import {
   CUSTOM_SERVICE_PAGE_DEFAULTS,
+  CUSTOM_SERVICE_PAGE_LOCKED,
   CUSTOM_SERVICE_PAGE_TEMPLATES,
   toServicePage,
   type CustomServicePageContent,
@@ -63,63 +64,58 @@ const fetchSaved = cache(async (key: string): Promise<unknown> => {
   }
 });
 
-/** A page's live content: the saved document merged over the bundled copy. */
+/** A file path or URL that points at an image (string image fields: story avatars and photos…). */
+const IMAGE_PATH = /^(\/(?!\/)|https?:\/\/)\S*\.(jpe?g|png|webp|gif|avif|svg)(\?\S*)?$/i;
+
+/**
+ * Every image of a page goes to next/image, which throws on hosts it isn't configured for. An image whose address
+ * isn't a site path or a Media Library URL (MEDIA_HOSTNAMES) keeps its bundled image instead. Works for any page and
+ * any image field: image objects ({ src, alt, width, height }) and string fields whose default is an image path.
+ */
+/** String fields that always hold an image, even when their default is empty (a new story's avatar or photo). */
+const IMAGE_FIELD_KEYS = new Set(["avatar", "photo"]);
+
+function guardImages(value: unknown, def: unknown, templates: ListTemplates = {}, path: (string | number)[] = []): unknown {
+  if (isImageValue(def)) {
+    return isPlainObject(value) && typeof value.src === "string" && (value.src === "" || isAllowedImageSrc(value.src))
+      ? value
+      : def;
+  }
+  const key = path[path.length - 1];
+  if (typeof def === "string" && (IMAGE_PATH.test(def) || (typeof key === "string" && IMAGE_FIELD_KEYS.has(key)))) {
+    // Empty = no image (the card leaves it out).
+    return typeof value === "string" && (value === "" || isAllowedImageSrc(value)) ? value : def;
+  }
+  if (Array.isArray(def) && Array.isArray(value)) {
+    const template = def.length ? def[0] : templates[patternOf(path)];
+    return value.map((item, i) => guardImages(item, def[i] ?? template, templates, [...path, i]));
+  }
+  if (isPlainObject(def) && isPlainObject(value)) {
+    const out: Record<string, unknown> = { ...value };
+    for (const key of Object.keys(def)) out[key] = guardImages(value[key], def[key], templates, [...path, key]);
+    return out;
+  }
+  return value;
+}
+
+/** A page's live content: the saved document merged over the bundled copy, with every image checked. */
 const getContent = cache(async <K extends ContentKey>(key: K): Promise<Content<K>> => {
   const fetched = await fetchContent(key);
   const raw = key === "home" ? upgradeLegacyHome(fetched) : fetched;
   const defaults = CONTENT_DEFAULTS[key];
-  return raw == null ? defaults : mergeContent(raw, defaults, CONTENT_LOCKED[key], CONTENT_TEMPLATES[key]);
+  if (raw == null) return defaults;
+  const merged = mergeContent(raw, defaults, CONTENT_LOCKED[key], CONTENT_TEMPLATES[key]);
+  return guardImages(merged, defaults, CONTENT_TEMPLATES[key]) as Content<K>;
 });
 
-/** Brand, contact details and menus (lib/site.ts shape). */
+/** Brand, contact details, header, footer and the other site-wide parts (lib/site.ts shape). */
 export const getSite = cache(async () => buildSite(await getContent("site")));
 
-/** Homepage copy, grouped by page section (data/home.ts HOME_CONTENT). */
-export const getHome = cache(async () => {
-  const c = await getContent("home");
-  // Avatars and photos go to next/image, which throws on hosts it isn't configured for: keep the bundled image then.
-  const bundledStories = CONTENT_DEFAULTS.home.stories.items;
-  const stories = c.stories.items.map((story, i) => {
-    const bundled = bundledStories[i] as Record<string, unknown> | undefined;
-    const fixed: Record<string, unknown> = { ...story };
-    for (const key of ["avatar", "photo"]) {
-      const src = fixed[key];
-      if (typeof src === "string" && !isAllowedImageSrc(src)) fixed[key] = bundled?.[key];
-    }
-    return fixed as typeof story;
-  });
-  return {
-    ...c,
-    stories: { ...c.stories, items: stories },
-    // Shorthands used by other pages (About FAQ, service pages' fallback process).
-    PROCESS_STEPS: c.process.steps,
-    STORIES: stories,
-    FAQS: c.faq.items,
-  };
-});
+/** Homepage content, grouped by page section in page order (data/home.ts HOME_CONTENT). */
+export const getHome = cache(async () => getContent("home"));
 
-/** About page copy (data/about.ts shape). */
-export const getAbout = cache(async () => {
-  const c = await getContent("about");
-  return {
-    ABOUT_SEO: c.seo,
-    HERO: c.hero,
-    WHY_WE_EXIST: c.whyWeExist,
-    WHO_WE_WORK_WITH: c.whoWeWorkWith,
-    HOW_IT_CONNECTS: c.howItConnects,
-    HOW_WE_WORK: c.howWeWork,
-    MISSION_VISION: c.missionVision,
-    WING_TAGS: c.wingTags,
-    HERO_FACTS: c.heroFacts,
-    VENDOR_COMPARISON: c.vendorComparison,
-    AUDIENCES: c.audiences,
-    LOOP_STEPS: c.loopSteps,
-    LOOP_EXAMPLE_DETAIL: c.loopExampleDetail,
-    PRINCIPLES: c.principles,
-    MISSION: c.mission,
-    VISION: c.vision,
-  };
-});
+/** About page content, grouped by page section in page order (data/about.ts ABOUT_CONTENT). */
+export const getAbout = cache(async () => getContent("about"));
 
 /** Contact page copy (data/contact.ts shape), with contact links from the site settings. */
 export const getContact = cache(async () => buildContact(await getContent("contact"), await getSite()));
@@ -151,7 +147,8 @@ export async function getServicePageSlugs(): Promise<string[]> {
 /** The page of a service added in the admin: its saved document merged over the starter copy. */
 const getCustomServicePage = cache(async (service: Service): Promise<ResolvedServicePage> => {
   const raw = await fetchContent(addedServicePageKey(service.slug));
-  const content = mergeContent(raw ?? {}, CUSTOM_SERVICE_PAGE_DEFAULTS, [], CUSTOM_SERVICE_PAGE_TEMPLATES);
+  const merged = mergeContent(raw ?? {}, CUSTOM_SERVICE_PAGE_DEFAULTS, CUSTOM_SERVICE_PAGE_LOCKED, CUSTOM_SERVICE_PAGE_TEMPLATES);
+  const content = guardImages(merged, CUSTOM_SERVICE_PAGE_DEFAULTS, CUSTOM_SERVICE_PAGE_TEMPLATES);
   return toServicePage(content as CustomServicePageContent, service);
 });
 

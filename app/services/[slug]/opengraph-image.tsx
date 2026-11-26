@@ -13,7 +13,6 @@ export async function generateStaticParams() {
 /** Per-service social share card, generated at build time in the same style as the homepage card. */
 export default async function OpenGraphImage({ params }: { params: Promise<{ slug: string }> }) {
   const [page, { SITE: site, WORDMARK }] = await Promise.all([getServicePage((await params).slug), getSite()]);
-  const service = page?.service;
 
   return new ImageResponse(
     (
@@ -35,14 +34,14 @@ export default async function OpenGraphImage({ params }: { params: Promise<{ slu
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 26, letterSpacing: 4, color: "#5fd4f0" }}>
-            {service ? `${service.number} · ${service.wing.toUpperCase()}` : site.tagline}
+            {page ? page.hero.eyebrow.toUpperCase() : site.tagline}
           </div>
           <div style={{ marginTop: 20, fontSize: 96, lineHeight: 1, letterSpacing: -3 }}>
-            {service?.title ?? site.name}
+            {page?.hero.breadcrumb.currentLabel || page?.hero.title || site.name}
           </div>
           {page && (
             <div style={{ marginTop: 28, fontSize: 32, color: "#a3b8d6" }}>
-              {`${page.hero.title} ${page.hero.highlight}`}
+              {[page.hero.title, page.hero.highlight].filter((part) => part.trim()).join(" ")}
             </div>
           )}
         </div>

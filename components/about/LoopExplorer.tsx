@@ -5,13 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Chip from "@/components/ui/Chip";
 import Eyebrow from "@/components/ui/Eyebrow";
 import { HIGHLIGHT, SMART_ANIMATE } from "@/components/ui/styles";
-import {
-  HOW_IT_CONNECTS as BUNDLED_LABELS,
-  LOOP_EXAMPLE_DETAIL as BUNDLED_LOOP_EXAMPLE_DETAIL,
-  LOOP_STEPS as BUNDLED_LOOP_STEPS,
-  type LoopStep,
-} from "@/data/about";
-import { SERVICES as BUNDLED_SERVICES, serviceHref, type Service } from "@/data/services";
+import { ABOUT_CONTENT, type HowItConnectsContent } from "@/data/about";
 import { useInView } from "@/hooks/useInView";
 import { cx } from "@/lib/cx";
 import { arrowTarget } from "@/lib/utils";
@@ -20,36 +14,54 @@ type Mode = "covers" | "example";
 
 /** Prototype timing: each step holds for 4 s, then the loop moves on. */
 const AUTO_ADVANCE_MS = 4000;
-/** Four steps, fixed: each is tied to a service in the admin. */
-const STEP_COUNT = BUNDLED_LOOP_STEPS.length;
-
-/** Where each step's tab sits around the ring (centre point, % of the ring box), from the Figma layout. */
-const TAB_POSITIONS = [
+/** Where each step's tab sits around the ring with four steps (centre point, % of the ring box), from the Figma layout. */
+const FOUR_TAB_POSITIONS = [
   { left: "50%", top: "12%" },
   { left: "85%", top: "50%" },
   { left: "50%", top: "88%" },
   { left: "16%", top: "50%" },
 ];
 
+/**
+ * Tab positions for any number of steps (added or removed in the admin): evenly round the ring, the first at the top,
+ * going clockwise. Four steps keep the exact Figma spots.
+ */
+function tabPositions(count: number) {
+  if (count === 4) return FOUR_TAB_POSITIONS;
+  return Array.from({ length: count }, (_, index) => {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / count;
+    return { left: `${50 + 35 * Math.cos(angle)}%`, top: `${50 + 38 * Math.sin(angle)}%` };
+  });
+}
+
 /** Ring geometry in a 620 × 620 box (Figma "About / Loop" vectors). */
 const CENTER = 310;
 const RING_R = 235.6;
-const QUARTER = (2 * Math.PI * RING_R) / 4;
+const CIRCUMFERENCE = 2 * Math.PI * RING_R;
 /** Figma dash pattern per step: [155·n, 620]. Figma fits it as four repeats round the ring, centred on each step. */
 const DASH_GAP = 620;
 const DASH_STEP = 155;
 
-/** Lit share of each quarter: grows step by step, and the whole ring lights up on the last step. */
-function arcDash(step: number) {
-  // Four steps, fixed: each is tied to a service in the admin.
-  if (step >= BUNDLED_LOOP_STEPS.length - 1) return { dasharray: `${QUARTER} 0`, dashoffset: 0 };
-  const dash = DASH_STEP * (step + 1);
-  const lit = (dash / (dash + DASH_GAP)) * QUARTER;
-  return { dasharray: `${lit} ${QUARTER - lit}`, dashoffset: lit / 2 };
+/**
+ * Lit share of each step's slice of the ring: grows step by step, and the whole ring lights up on the last step.
+ * Four steps follow the Figma dash pattern exactly; other counts grow evenly from a fifth to just under half.
+ */
+function arcDash(step: number, count: number) {
+  const slice = CIRCUMFERENCE / Math.max(1, count);
+  if (step >= count - 1) return { dasharray: `${slice} 0`, dashoffset: 0 };
+  let share: number;
+  if (count === 4) {
+    const dash = DASH_STEP * (step + 1);
+    share = dash / (dash + DASH_GAP);
+  } else {
+    share = 0.2 + (0.25 * step) / Math.max(1, count - 2);
+  }
+  const lit = share * slice;
+  return { dasharray: `${lit} ${slice - lit}`, dashoffset: lit / 2 };
 }
 
-function Ring({ step, slow }: { step: number; slow: boolean }) {
-  const { dasharray, dashoffset } = arcDash(step);
+function Ring({ step, count, slow }: { step: number; count: number; slow: boolean }) {
+  const { dasharray, dashoffset } = arcDash(step, count);
   return (
     <svg aria-hidden viewBox="0 0 620 620" fill="none" className="absolute inset-0 size-full overflow-visible">
       <circle
@@ -78,6 +90,8 @@ function Ring({ step, slow }: { step: number; slow: boolean }) {
         strokeLinecap="round"
         strokeDasharray={dasharray}
         strokeDashoffset={dashoffset}
+        // Lit slices start at the top (12 o'clock), where the first step's tab sits.
+        transform={`rotate(-90 ${CENTER} ${CENTER})`}
         className={cx(
           "stroke-brand transition-[stroke-dasharray,stroke-dashoffset]",
           SMART_ANIMATE,
@@ -89,12 +103,8 @@ function Ring({ step, slow }: { step: number; slow: boolean }) {
 }
 
 type LoopExplorerProps = {
-  /** Live copy from the admin (bundled copy when omitted). */
-  LOOP_STEPS?: LoopStep[];
-  LOOP_EXAMPLE_DETAIL?: string;
-  SERVICES?: Service[];
-  /** View toggle, panel and ring labels (admin-edited). */
-  labels?: typeof BUNDLED_LABELS;
+  /** The section's content: steps, view toggle, panel and ring labels (admin: About Us → How it connects). */
+  content?: HowItConnectsContent;
   /** Section heading block shown above the view toggle (server-rendered). */
   heading: React.ReactNode;
 };
@@ -102,11 +112,13 @@ type LoopExplorerProps = {
 /** "One loop. Every wing.": view toggle, step panel and the step ring. */
 export default function LoopExplorer({
   heading,
-  LOOP_STEPS = BUNDLED_LOOP_STEPS,
-  LOOP_EXAMPLE_DETAIL = BUNDLED_LOOP_EXAMPLE_DETAIL,
-  SERVICES = BUNDLED_SERVICES,
-  labels = BUNDLED_LABELS,
+  content = ABOUT_CONTENT.howItConnects,
 }: LoopExplorerProps) {
+  const labels = content;
+  // Steps can be added or removed in the admin; one without a title is a half-written draft and is left out.
+  const LOOP_STEPS = content.steps.filter((item) => item.covers.title.trim());
+  const STEP_COUNT = Math.max(1, LOOP_STEPS.length);
+  const TAB_POSITIONS = tabPositions(LOOP_STEPS.length);
   const [mode, setMode] = useState<Mode>("covers");
   const [step, setStep] = useState(0);
   const [auto, setAuto] = useState(true);
@@ -130,9 +142,9 @@ export default function LoopExplorer({
     // Below lg the step panel sits above the ring and changes height per step; advancing on its own would
     // shift the page under a reader's thumb, so phones and tablets move only when tapped.
     if (!matchMedia("(min-width: 1024px)").matches) return;
-    const timer = window.setTimeout(() => goTo(step + 1), AUTO_ADVANCE_MS);
+    const timer = window.setTimeout(() => setStep((current) => (current + 1) % STEP_COUNT), AUTO_ADVANCE_MS);
     return () => window.clearTimeout(timer);
-  }, [auto, inView, step]);
+  }, [auto, inView, step, STEP_COUNT]);
 
   const onTabKeyDown = (event: React.KeyboardEvent) => {
     const next = arrowTarget(event, step, LOOP_STEPS.length);
@@ -141,12 +153,12 @@ export default function LoopExplorer({
     tabRefs.current[next]?.focus();
   };
 
-  const current = LOOP_STEPS[step];
-  const service = SERVICES.find((item) => item.id === current.service)!;
-  const content =
+  if (LOOP_STEPS.length === 0) return <div ref={rootRef}>{heading}</div>;
+  const current = LOOP_STEPS[Math.min(step, LOOP_STEPS.length - 1)];
+  const panel =
     mode === "covers"
       ? current.covers
-      : { title: current.example.title, detail: LOOP_EXAMPLE_DETAIL, tags: current.example.tags };
+      : { title: current.example.title, detail: labels.exampleDetail, tags: current.example.tags };
   const fill = (pattern: string, n: number) =>
     pattern.replaceAll("{n}", String(n)).replaceAll("{total}", String(LOOP_STEPS.length));
   const counter = fill(labels.stepCounter, step + 1);
@@ -159,7 +171,7 @@ export default function LoopExplorer({
         {heading}
         <div
           role="group"
-          aria-label="Loop view"
+          aria-label={labels.a11y.viewLabel}
           className="flex max-w-full gap-1 rounded-full border border-line bg-[linear-gradient(rgb(120_180_255/0.07),transparent_45%)] bg-surface p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] dark:drop-shadow-[0_30px_30px_rgb(0_0_0/0.7)]"
         >
           {(
@@ -205,7 +217,7 @@ export default function LoopExplorer({
             <span aria-hidden className="flex gap-[5px]">
               {LOOP_STEPS.map((item, index) => (
                 <span
-                  key={item.service}
+                  key={index}
                   className={cx(
                     "h-[3px] w-[22px] rounded-sm transition-colors",
                     SMART_ANIMATE,
@@ -219,23 +231,25 @@ export default function LoopExplorer({
           <div key={`${mode}-${step}`} className="mt-[18px] flex animate-scene-in flex-col gap-3.5">
             <h3 className="flex items-baseline gap-2.5 font-display text-2xl leading-[1.15] text-fg sm:text-[28px]">
               <span className="text-[38px] leading-none font-light text-brand sm:text-[44px]">{step + 1}</span>
-              {content.title}
+              {panel.title}
             </h3>
-            <p className="max-w-[440px] text-base leading-[1.6] text-fg-muted">{content.detail}</p>
+            <p className="max-w-[440px] text-base leading-[1.6] text-fg-muted">{panel.detail}</p>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <ul aria-label="Includes" className="flex flex-wrap gap-2">
-                {content.tags.map((tag, index) => (
+              <ul aria-label={labels.a11y.tagsLabel} className="flex flex-wrap gap-2">
+                {panel.tags.filter((tag) => tag.trim()).map((tag, index) => (
                   <li key={index}>
                     <Chip className="h-7 border border-line text-fg-muted">{tag}</Chip>
                   </li>
                 ))}
               </ul>
-              <Link
-                href={serviceHref(service)}
-                className="inline-flex h-10 items-center rounded-full bg-[#0b1a3a] px-4 text-sm font-medium text-white transition-transform duration-250 ease-out hover:-translate-y-0.5 sm:h-9 dark:bg-white dark:text-[#0b1a3a]"
-              >
-                {service.short[0]} <span aria-hidden>&nbsp;→</span>
-              </Link>
+              {current.link.label.trim() && (
+                <Link
+                  href={current.link.href || "/"}
+                  className="inline-flex h-10 items-center rounded-full bg-[#0b1a3a] px-4 text-sm font-medium text-white transition-transform duration-250 ease-out hover:-translate-y-0.5 sm:h-9 dark:bg-white dark:text-[#0b1a3a]"
+                >
+                  {current.link.label} <span aria-hidden>&nbsp;→</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -248,7 +262,7 @@ export default function LoopExplorer({
             aria-hidden
             className="absolute inset-[20%] rounded-full bg-[radial-gradient(closest-side,#1e9bf0,#1971e8_27%,#1446e0_55%,transparent)] opacity-30 blur-[40px] dark:opacity-50"
           />
-          <Ring step={step} slow={auto} />
+          <Ring step={step} count={LOOP_STEPS.length} slow={auto} />
           <div className="absolute inset-[32%] grid place-items-center rounded-full border border-line bg-glass text-center backdrop-blur-md">
             <p className="flex flex-col items-center gap-1.5 font-display text-[clamp(1rem,3.5vw,1.375rem)] leading-[1.15] text-fg">
               <span
@@ -270,14 +284,14 @@ export default function LoopExplorer({
 
         <div
           role="tablist"
-          aria-label="Steps in the loop"
+          aria-label={labels.a11y.stepsLabel}
           className="mt-5 grid grid-cols-2 gap-2 md:absolute md:inset-0 md:mt-0 md:block"
         >
           {LOOP_STEPS.map((item, index) => {
             const selected = index === step;
             return (
               <button
-                key={item.service}
+                key={index}
                 ref={(node) => {
                   tabRefs.current[index] = node;
                 }}

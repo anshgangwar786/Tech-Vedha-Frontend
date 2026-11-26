@@ -7,16 +7,12 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import ButtonLink from "@/components/ui/ButtonLink";
 import { SMART_ANIMATE } from "@/components/ui/styles";
-import {
-  SERVICES as BUNDLED_SERVICES,
-  hasServicePage,
-  serviceHref,
-  type Service,
-} from "@/data/services";
+import type { HomeServiceItem } from "@/data/home";
 import { cx } from "@/lib/cx";
 import { arrowTarget } from "@/lib/utils";
 
@@ -66,13 +62,18 @@ function FitToWidth({
 }
 
 type ServicesShowcaseProps = {
-  /** Live catalogue from the admin (bundled copy when omitted). */
-  SERVICES?: Service[];
-  /** Server-rendered illustration per service id; only the active one is shown. */
-  scenes: Record<string, React.ReactNode>;
+  /** The homepage's own service cards (Homepage → Services). */
+  items: HomeServiceItem[];
+  /** Server-rendered illustration per card, same order; only the active one is shown. */
+  scenes: React.ReactNode[];
   /** Word before the service name on the service-page button ("Explore App Development"). */
-  exploreLabel?: string;
+  exploreLabel: string;
+  /** Screen-reader name of the card list. */
+  listLabel: string;
 };
+
+/** Element id of a card: links like /#service-<anchor> open it. */
+const cardId = (item: HomeServiceItem, index: number) => `service-${item.anchor.trim() || index + 1}`;
 
 /**
  * Service switcher: hovering, focusing or selecting a card swaps the scene.
@@ -80,11 +81,7 @@ type ServicesShowcaseProps = {
  * Below `lg`: compact tiles (two across, up to four across on tablets; an odd last tile spans the row)
  * with the scene directly underneath, so the change is visible right where the visitor tapped.
  */
-export default function ServicesShowcase({
-  scenes,
-  SERVICES = BUNDLED_SERVICES,
-  exploreLabel = "Explore",
-}: ServicesShowcaseProps) {
+export default function ServicesShowcase({ scenes, items: SERVICES, exploreLabel, listLabel }: ServicesShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const panelId = useId();
   const active = SERVICES[activeIndex];
@@ -93,7 +90,7 @@ export default function ServicesShowcase({
     const next = arrowTarget(event, activeIndex, SERVICES.length);
     if (next === null) return;
     setActiveIndex(next);
-    document.getElementById(`service-${SERVICES[next].id}`)?.focus();
+    document.getElementById(cardId(SERVICES[next], next))?.focus();
   };
 
   return (
@@ -101,7 +98,7 @@ export default function ServicesShowcase({
       <div
         id={panelId}
         role="tabpanel"
-        aria-labelledby={`service-${active.id}`}
+        aria-labelledby={cardId(active, activeIndex)}
         className="relative order-2 overflow-hidden rounded-3xl border border-line bg-[radial-gradient(60%_50%_at_50%_55%,var(--surface-raised),var(--bg)_80%)] lg:order-1 lg:flex lg:min-h-[640px] lg:flex-col"
       >
         <div aria-hidden className="absolute inset-0 bg-grid" />
@@ -120,7 +117,7 @@ export default function ServicesShowcase({
           <span aria-hidden className="flex shrink-0 gap-1.5">
             {SERVICES.map((service, index) => (
               <span
-                key={service.id}
+                key={index}
                 className={cx(
                   "h-1 w-4 rounded-full sm:w-[22px]",
                   index === activeIndex ? "bg-accent" : "bg-line",
@@ -131,24 +128,37 @@ export default function ServicesShowcase({
         </div>
         {/* Below lg the tiles drop the summary, so it is shown here instead. */}
         <p
-          key={`summary-${active.id}`}
+          key={`summary-${activeIndex}`}
           className="relative animate-scene-in px-5 pt-4 text-[15px] leading-[1.55] text-fg-muted sm:px-6 lg:hidden"
         >
           {active.summary}
         </p>
-        <div className="relative grid grid-cols-1 place-items-center px-4 py-6 sm:p-9 lg:flex-1">
-          {/* Keyed so each newly selected scene replays the entrance animation. */}
-          <div
-            key={active.id}
-            className="grid w-full animate-scene-in grid-cols-1 place-items-center"
-          >
-            <FitToWidth width={SCENE_WIDTH}>{scenes[active.id]}</FitToWidth>
+        {active.image ? (
+          // An uploaded card image fills the panel under the top bar (Homepage → Services → card → Card image).
+          <div key={activeIndex} className="relative aspect-[4/3] w-full animate-scene-in lg:aspect-auto lg:flex-1">
+            <Image
+              src={active.image.src}
+              alt={active.image.alt}
+              fill
+              sizes="(min-width: 1024px) 641px, 100vw"
+              className="object-cover"
+            />
           </div>
-        </div>
-        {hasServicePage(active) && (
+        ) : (
+          <div className="relative grid grid-cols-1 place-items-center px-4 py-6 sm:p-9 lg:flex-1">
+            {/* Keyed so each newly selected scene replays the entrance animation. */}
+            <div
+              key={activeIndex}
+              className="grid w-full animate-scene-in grid-cols-1 place-items-center"
+            >
+              <FitToWidth width={SCENE_WIDTH}>{scenes[activeIndex]}</FitToWidth>
+            </div>
+          </div>
+        )}
+        {active.href.trim() && (
           <div className="relative px-4 pb-4 sm:px-6 sm:pb-6 lg:absolute lg:right-6 lg:bottom-6 lg:p-0">
             <ButtonLink
-              href={serviceHref(active)}
+              href={active.href}
               variant="glass"
               size="sm"
               arrow
@@ -162,7 +172,7 @@ export default function ServicesShowcase({
 
       <div
         role="tablist"
-        aria-label="Services"
+        aria-label={listLabel}
         aria-orientation="vertical"
         onKeyDown={onKeyDown}
         // Tablets: one row when it fits (up to four), otherwise three across.
@@ -175,11 +185,11 @@ export default function ServicesShowcase({
       >
         {SERVICES.map((service, index) => {
           const selected = index === activeIndex;
-          const linked = hasServicePage(service);
+          const linked = Boolean(service.href.trim());
           return (
             // Wrapper so the arrow can be a real link: links can't sit inside the tab <button>.
             <div
-              key={service.id}
+              key={index}
               role="presentation"
               className={cx(
                 "relative flex",
@@ -194,7 +204,7 @@ export default function ServicesShowcase({
               )}
             >
               <button
-                id={`service-${service.id}`}
+                id={cardId(service, index)}
                 type="button"
                 role="tab"
                 aria-selected={selected}
@@ -251,7 +261,7 @@ export default function ServicesShowcase({
               </button>
               {linked && (
                 <Link
-                  href={serviceHref(service)}
+                  href={service.href}
                   aria-label={`${exploreLabel} ${service.title}`}
                   // The panel's "Explore …" button is the keyboard route; this one is for pointer users.
                   tabIndex={-1}

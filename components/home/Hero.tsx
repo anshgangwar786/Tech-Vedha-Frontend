@@ -13,8 +13,8 @@ export default async function Hero() {
     >
       {/* Decorative light wave; the theme decides which variant is visible. */}
       <div aria-hidden className="absolute -inset-x-[13.6%] -top-[12%] -bottom-[19%] -z-10">
-        <Image src="/home/wave-dark.svg" alt="" fill unoptimized loading="eager" className="hidden dark:block" />
-        <Image src="/home/wave-light.svg" alt="" fill unoptimized loading="eager" className="dark:hidden" />
+        <Image src={hero.background.dark.src} alt={hero.background.dark.alt} fill unoptimized loading="eager" className="hidden dark:block" />
+        <Image src={hero.background.light.src} alt={hero.background.light.alt} fill unoptimized loading="eager" className="dark:hidden" />
       </div>
 
       <div className="container-site flex min-h-[max(640px,100svh)] flex-col pt-[117px] lg:min-h-[900px]">

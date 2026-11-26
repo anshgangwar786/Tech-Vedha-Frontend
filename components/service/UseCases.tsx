@@ -12,7 +12,7 @@ export default function UseCases({ page }: UseCasesProps) {
   return (
     <section aria-labelledby="use-cases-title" className={cx("defer-render bg-bg", SECTION)}>
       <div className="container-site">
-        <SectionHeader id="use-cases-title" eyebrow={page.labels.useCases} title={useCases.title} intro={useCases.intro} light />
+        <SectionHeader id="use-cases-title" eyebrow={useCases.eyebrow} title={useCases.title} intro={useCases.intro} light />
 
         <ul data-reveal-stagger className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {useCases.items.map(({ title, detail, icon: Icon }, index) => (

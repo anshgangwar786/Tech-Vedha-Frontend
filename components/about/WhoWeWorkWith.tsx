@@ -3,16 +3,15 @@ import SectionGlow from "@/components/about/SectionGlow";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { CARD, CARD_HOVER, HIGHLIGHT, ICON_TILE, SECTION } from "@/components/ui/styles";
 import { cx } from "@/lib/cx";
-import { getAbout } from "@/server/content";
+import type { AboutContent } from "@/data/about";
 
 /** Small pill tag (24 px) used on the cards. */
 const TAG = "inline-flex h-6 items-center rounded-full px-[9px] text-[11px] font-medium whitespace-nowrap";
 const TAG_DEFAULT = "bg-surface-raised text-fg-muted";
 const TAG_ON_HIGHLIGHT = "bg-white/16 text-white";
 
-/** Four audience cards; the first (retail, which uses every wing) is highlighted. */
-export default async function WhoWeWorkWith() {
-  const { AUDIENCES, WHO_WE_WORK_WITH: copy } = await getAbout();
+/** Audience cards; those marked "featured" in the admin are highlighted. */
+export default function WhoWeWorkWith({ content: copy }: { content: AboutContent["whoWeWorkWith"] }) {
   return (
     <section aria-labelledby="audience-title" className={cx("defer-render relative isolate bg-bg", SECTION)}>
       <SectionGlow />
@@ -26,8 +25,8 @@ export default async function WhoWeWorkWith() {
         />
 
         <ul data-reveal-stagger className="mt-10 grid gap-4 sm:mt-14 sm:grid-cols-2 lg:grid-cols-4">
-          {AUDIENCES.map((audience, index) => {
-            const featured = index === 0;
+          {copy.cards.filter((card) => card.title.trim()).map((audience, index) => {
+            const { featured } = audience;
             return (
               <li
                 key={index}
@@ -46,10 +45,10 @@ export default async function WhoWeWorkWith() {
                   {audience.detail}
                 </p>
                 <ul
-                  aria-label="Wings involved"
+                  aria-label={copy.a11y.tagsLabel}
                   className={cx("flex flex-wrap gap-1.5 border-t pt-3", featured ? "border-white/30" : "border-line")}
                 >
-                  {audience.tags.map((tag, tagIndex) => (
+                  {audience.tags.filter((tag) => tag.trim()).map((tag, tagIndex) => (
                     <li key={tagIndex} className={cx(TAG, featured ? TAG_ON_HIGHLIGHT : TAG_DEFAULT)}>
                       {tag}
                     </li>

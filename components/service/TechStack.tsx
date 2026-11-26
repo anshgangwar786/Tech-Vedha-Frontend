@@ -34,7 +34,7 @@ function ToolChip({ tool }: { tool: TechTool }) {
 
 /** "Proven tools. Zero lock-in." — the tools the team works with, grouped by layer or channel. */
 export default function TechStack({ page }: { page: ResolvedServicePage }) {
-  const { techStack, labels } = page;
+  const { techStack } = page;
 
   return (
     <section aria-labelledby="tech-stack-title" className={cx("defer-render relative isolate overflow-hidden bg-bg-deep", SECTION)}>
@@ -58,7 +58,7 @@ export default function TechStack({ page }: { page: ResolvedServicePage }) {
         <ul data-reveal-stagger className="mt-10 grid border-y border-line sm:mt-14 md:grid-cols-3">
           {techStack.highlights.map((highlight, index) => (
             <li
-              key={highlight}
+              key={`${index}-${highlight}`}
               className={cx(
                 "flex items-center gap-3.5 py-4 text-sm font-medium text-fg-muted sm:py-6",
                 index > 0 && "border-t border-line md:border-t-0 md:border-l md:pl-7",
@@ -74,7 +74,7 @@ export default function TechStack({ page }: { page: ResolvedServicePage }) {
         <div data-reveal-stagger className="mt-8 grid gap-4 max-sm:flex max-sm:snap-row sm:mt-12 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
           {techStack.groups.map((group, index) => (
             <article
-              key={group.title}
+              key={`${index}-${group.title}`}
               className="group flex flex-col gap-5 rounded-3xl border border-line bg-surface p-5 transition duration-250 ease-out hover:border-brand hover:shadow-[0_30px_60px_rgb(30_155_240/0.35)] sm:gap-6 sm:p-7"
             >
               <header className="flex items-start gap-3.5 sm:items-center sm:gap-4">
@@ -86,12 +86,12 @@ export default function TechStack({ page }: { page: ResolvedServicePage }) {
                   <p className="mt-1 text-sm text-fg-muted">{group.tagline}</p>
                 </div>
                 <span className="hidden h-[26px] shrink-0 items-center rounded-full border border-line px-2.5 text-[11px] font-medium tracking-[0.06em] text-fg-subtle sm:flex">
-                  {group.tools.length} {labels.toolsWord}
+                  {group.tools.length} {techStack.toolsWord}
                 </span>
               </header>
               <ul className="grid grid-cols-2 gap-2.5">
-                {group.tools.map((tool) => (
-                  <ToolChip key={tool.name} tool={tool} />
+                {group.tools.map((tool, toolIndex) => (
+                  <ToolChip key={`${toolIndex}-${tool.name}`} tool={tool} />
                 ))}
               </ul>
             </article>

@@ -5,9 +5,9 @@ import { getSite } from "@/server/content";
 type CtaButtonsProps = {
   /** Primary "Start a project" target. */
   href?: string;
-  /** Primary button label (default "Start a project"). */
+  /** Primary button label (pages pass their own; "Start a project" only as a last resort). */
   label?: string;
-  /** Secondary button; defaults to "Chat on WhatsApp". */
+  /** Secondary button; defaults to WhatsApp with the label from Site & menus → WhatsApp button. */
   secondary?: { href: string; label: string; variant?: "glass" | "outline" };
   className?: string;
 };
@@ -19,7 +19,7 @@ const isContactTarget = (href: string) => ["#contact", "/#contact", "/contact"].
 export default async function CtaButtons({ href = "#contact", label = "Start a project", secondary, className }: CtaButtonsProps) {
   if (!secondary) {
     const { WHATSAPP_URL, WHATSAPP_BUTTON_LABEL } = await getSite();
-    secondary = { href: WHATSAPP_URL, label: WHATSAPP_BUTTON_LABEL || "Chat on WhatsApp" };
+    secondary = { href: WHATSAPP_URL, label: WHATSAPP_BUTTON_LABEL };
   }
   return (
     // Narrow phones: both buttons stack at full width (equal, easy to hit). From 440 px they sit side by side.

@@ -4,9 +4,8 @@ import { useCallback, useId, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, CircleAlert } from "lucide-react";
 import { Glyph, type ContactGlyphName } from "@/components/contact/icons";
 import { sendEnquiry, type EnquiryResult } from "@/app/actions/enquiry";
-import { FORM as BUNDLED_FORM, TIMEFRAMES as BUNDLED_TIMEFRAMES, type ContactFormCopy } from "@/data/contact";
-import { SERVICES as BUNDLED_SERVICES, type Service } from "@/data/services";
-import { SITE as BUNDLED_SITE, WHATSAPP_URL as BUNDLED_WHATSAPP_URL, type EnquirySentCopy } from "@/lib/site";
+import { CONTACT_FORM_COPY, type ContactFormCopy } from "@/data/forms";
+import { SITE as BUNDLED_SITE, WHATSAPP_URL as BUNDLED_WHATSAPP_URL } from "@/lib/site";
 import { cx } from "@/lib/cx";
 import { mailtoHref } from "@/lib/utils";
 import EnquirySent, { useEnquirySent } from "@/components/ui/EnquirySent";
@@ -106,13 +105,13 @@ function Field({
 }
 
 /** Reads the form into the fields shared by the email and WhatsApp summaries. */
-function readEnquiry(form: HTMLFormElement, OTHER: string) {
+function readEnquiry(form: HTMLFormElement, OTHER: string, copy: ContactFormCopy) {
   const data = new FormData(form);
   const value = (key: string) => String(data.get(key) ?? "").trim();
   const picked = data.getAll("service").map((entry) => String(entry));
   const other = value("otherService");
   return {
-    services: picked.map((name) => (name === OTHER && other ? `Other: ${other}` : name)),
+    services: picked.map((name) => (name === OTHER && other ? `${copy.summary.otherPrefix}: ${other}` : name)),
     name: value("name"),
     company: value("company"),
     phone: value("phone").replace(/\s+/g, " "),
@@ -124,17 +123,18 @@ function readEnquiry(form: HTMLFormElement, OTHER: string) {
 }
 
 /** Plain-text summary for the email fallback. */
-function summarise(form: HTMLFormElement, OTHER: string) {
-  const e = readEnquiry(form, OTHER);
+function summarise(form: HTMLFormElement, OTHER: string, copy: ContactFormCopy) {
+  const e = readEnquiry(form, OTHER, copy);
+  const { summary } = copy;
   const service = e.services.join(", ");
   const lines = [
-    `${e.services.length > 1 ? "Services" : "Service"}: ${service}`,
-    `Name: ${e.name}`,
-    `Company: ${e.company}`,
-    `Phone / WhatsApp: ${e.phone}`,
-    `Email: ${e.email}`,
-    `City / country: ${e.city}`,
-    `Start: ${e.timeframe}`,
+    `${e.services.length > 1 ? summary.servicesLabel : summary.serviceLabel}: ${service}`,
+    `${copy.nameLabel}: ${e.name}`,
+    `${copy.companyLabel}: ${e.company}`,
+    `${copy.phoneLabel}: ${e.phone}`,
+    `${copy.emailLabel}: ${e.email}`,
+    `${copy.cityLabel}: ${e.city}`,
+    `${summary.startLabel}: ${e.timeframe}`,
   ];
   if (e.message) lines.push("", e.message);
   return { service, body: lines.join("\n") };
@@ -144,38 +144,37 @@ function summarise(form: HTMLFormElement, OTHER: string) {
  * WhatsApp-formatted summary: *bold* section headings, one service per bullet, one field per line, so the lead reads
  * the same way every time. Formatting markers typed by the visitor are neutralised so they can't break the layout.
  */
-function summariseForWhatsApp(form: HTMLFormElement, OTHER: string) {
-  const e = readEnquiry(form, OTHER);
+function summariseForWhatsApp(form: HTMLFormElement, OTHER: string, copy: ContactFormCopy) {
+  const e = readEnquiry(form, OTHER, copy);
+  const { summary } = copy;
   const clean = (text: string) => text.replace(/[*_~`]/g, (char) => `${char}​`);
   /** `raw` skips cleaning for values the team copies out (email, phone), so they paste back exactly as typed. */
   const row = (label: string, text: string, raw = false) => `${label}: ${(raw ? text : clean(text)) || "—"}`;
   const sections = [
-    "*NEW PROJECT ENQUIRY*\n_Sent from the website contact form_",
-    ["*Services needed*", ...e.services.map((service) => `• ${clean(service)}`)].join("\n"),
+    `*${summary.whatsappTitle}*\n_${summary.whatsappSubtitle}_`,
+    [`*${summary.whatsappServicesHeading}*`, ...e.services.map((service) => `• ${clean(service)}`)].join("\n"),
     [
-      "*Contact details*",
-      row("Name", e.name),
-      row("Company", e.company),
-      row("Phone", e.phone, true),
-      row("Email", e.email, true),
-      row("Location", e.city),
+      `*${summary.whatsappContactHeading}*`,
+      row(copy.nameLabel, e.name),
+      row(copy.companyLabel, e.company),
+      row(copy.phoneLabel, e.phone, true),
+      row(copy.emailLabel, e.email, true),
+      row(summary.whatsappLocationLabel, e.city),
     ].join("\n"),
-    ["*Timeline*", row("Start", e.timeframe)].join("\n"),
+    [`*${summary.whatsappTimelineHeading}*`, row(summary.startLabel, e.timeframe)].join("\n"),
   ];
-  if (e.message) sections.push(`*Project details*\n${clean(e.message)}`);
+  if (e.message) sections.push(`*${summary.whatsappDetailsHeading}*\n${clean(e.message)}`);
   return sections.join("\n\n");
 }
 
 type ContactFormProps = {
-  /** Live content from the admin (bundled copy when omitted). */
-  SERVICES?: Service[];
-  TIMEFRAMES?: string[];
   SITE?: { email: string };
   WHATSAPP_URL?: string;
-  /** Labels, placeholders and buttons (admin: Contact → Form). */
+  /**
+   * Everything the form says: labels, service and timeframe choices, messages and the "Enquiry sent" pop-up.
+   * Each place keeps its own copy (admin: Contact → Enquiry form; Site & menus → "Start a project" pop-up).
+   */
   copy?: ContactFormCopy;
-  /** "Enquiry sent" pop-up text (admin: Site & menus). */
-  sentCopy?: EnquirySentCopy;
 };
 
 /**
@@ -185,16 +184,13 @@ type ContactFormProps = {
  * shown under the field.
  */
 export default function ContactForm({
-  SERVICES = BUNDLED_SERVICES,
-  TIMEFRAMES = BUNDLED_TIMEFRAMES,
   SITE = BUNDLED_SITE,
   WHATSAPP_URL = BUNDLED_WHATSAPP_URL,
-  copy = BUNDLED_FORM,
-  sentCopy,
+  copy = CONTACT_FORM_COPY,
 }: ContactFormProps) {
   /** The "something else" option; its text box opens when it is ticked. */
   const otherLabel = copy.otherServiceLabel;
-  const OTHER = useMemo(() => otherLabel.trim() || "Others", [otherLabel]);
+  const OTHER = useMemo(() => otherLabel.trim() || CONTACT_FORM_COPY.otherServiceLabel, [otherLabel]);
   const formRef = useRef<HTMLFormElement>(null);
   /** Unique ids: the form can appear twice on a page (inline on /contact and in the "Start a project" popup). */
   const uid = useId();
@@ -206,7 +202,8 @@ export default function ContactForm({
   const [sending, setSending] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const otherOpen = selected.includes(OTHER);
-  const validate = useCallback((data: FormData) => validateContactEnquiry(data, OTHER), [OTHER]);
+  const messages = copy.validation;
+  const validate = useCallback((data: FormData) => validateContactEnquiry(data, OTHER, messages), [OTHER, messages]);
   const { errors, validateForm, formHandlers, fieldProps, errorId, clear, show } = useFieldErrors(validate);
   const sent = useEnquirySent(
     useCallback(() => {
@@ -226,12 +223,12 @@ export default function ContactForm({
     if (sending) return;
     const invalid = validateForm(form);
     if (Object.keys(invalid).length) {
-      setStatus("Please fix the highlighted fields.", true);
+      setStatus(copy.status.fixFields, true);
       focusFirstError(form, invalid);
       return;
     }
     setSending(true);
-    setStatus("Sending your enquiry…");
+    setStatus(copy.status.sending);
     const result: EnquiryResult = await sendEnquiry("contact", new FormData(form)).catch(() => ({
       ok: false,
       message: "",
@@ -239,7 +236,7 @@ export default function ContactForm({
     }));
     setSending(false);
     if (result.ok) {
-      setStatus("Your enquiry is in. We’ll reply with next steps.");
+      setStatus(copy.status.sent);
       sent.show(form);
       return;
     }
@@ -248,12 +245,12 @@ export default function ContactForm({
         show(result.fieldErrors);
         focusFirstError(form, result.fieldErrors);
       }
-      setStatus(result.message || "Please check your details and try again.", true);
+      setStatus(result.message || copy.status.error, true);
       return;
     }
-    const { service, body } = summarise(form, OTHER);
-    window.location.href = mailtoHref(SITE.email, `Project enquiry — ${service}`, body);
-    setStatus("Your email app should open with your details. Send it and we’ll reply.");
+    const { service, body } = summarise(form, OTHER, copy);
+    window.location.href = mailtoHref(SITE.email, `${copy.summary.emailSubject} — ${service}`, body);
+    setStatus(copy.status.emailOpened);
     sent.show(form);
   };
 
@@ -262,13 +259,13 @@ export default function ContactForm({
     if (!form) return;
     const invalid = validateForm(form);
     if (Object.keys(invalid).length) {
-      setStatus("Please fix the highlighted fields.", true);
+      setStatus(copy.status.fixFields, true);
       focusFirstError(form, invalid);
       return;
     }
-    const text = summariseForWhatsApp(form, OTHER);
+    const text = summariseForWhatsApp(form, OTHER, copy);
     window.open(`${WHATSAPP_URL}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-    setStatus("WhatsApp opened in a new tab with your details filled in.");
+    setStatus(copy.status.whatsappOpened);
     sent.show(form);
   };
 
@@ -291,7 +288,7 @@ export default function ContactForm({
           </legend>
           {/* One column on the smallest phones (< 360 px), where long words would not fit two-up. */}
           <div className="grid grid-cols-2 gap-2 max-[359px]:grid-cols-1 sm:flex sm:flex-wrap">
-            {[...new Set([...SERVICES.map((service) => service.title), OTHER])].map((name) => (
+            {[...new Set([...copy.serviceOptions.map((option) => option.trim()).filter(Boolean), OTHER])].map((name) => (
               <label key={name} className={cx(CHIP, name === OTHER && "max-sm:col-span-full")}>
                 <input
                   type="checkbox"
@@ -360,7 +357,7 @@ export default function ContactForm({
             type="tel"
             inputMode="tel"
             autoComplete="tel"
-            defaultValue="+91 "
+            defaultValue={copy.phonePrefill}
             maxLength={16}
             onInput={(e) => {
               const clean = cleanPhoneInput(e.currentTarget.value);
@@ -408,7 +405,7 @@ export default function ContactForm({
                 <option value="" disabled>
                   {copy.timeframePlaceholder}
                 </option>
-                {[...new Set(TIMEFRAMES.filter((timeframe) => timeframe.trim()))].map((timeframe) => (
+                {[...new Set(copy.timeframes.map((timeframe) => timeframe.trim()).filter(Boolean))].map((timeframe) => (
                   <option key={timeframe} value={timeframe}>
                     {timeframe}
                   </option>
@@ -442,7 +439,7 @@ export default function ContactForm({
             aria-disabled={sending}
             className="inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-primary px-6 text-[15px] font-medium text-white shadow-[0_8px_24px_-12px_var(--glow)] transition duration-200 hover:brightness-110"
           >
-            {copy.submitLabel || "Send enquiry"}
+            {copy.submitLabel}
             <Glyph name="arrow" className="size-4" />
           </button>
           <button
@@ -474,7 +471,7 @@ export default function ContactForm({
           </div>
         </div>
       </form>
-      <EnquirySent open={sent.open} onClose={sent.close} copy={sentCopy} />
+      <EnquirySent open={sent.open} onClose={sent.close} copy={copy.sent} />
     </>
   );
 }

@@ -3,10 +3,9 @@ import { Glyph, LayersArt } from "@/components/contact/icons";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import Eyebrow from "@/components/ui/Eyebrow";
 import { BRAND_GRADIENT, MICRO, PILL } from "@/components/ui/styles";
-import type { Crumb } from "@/lib/seo";
 import { cx } from "@/lib/cx";
 import { externalLinkProps } from "@/lib/utils";
-import { getContact, getServices, getSite } from "@/server/content";
+import { getContact, getSite } from "@/server/content";
 
 /** Card shadows: black in dark, brand-tinted in light. */
 const SHADOW_SOFT = "shadow-[0_30px_60px_-30px_rgb(20_70_224/0.25)] dark:shadow-[0_30px_60px_-30px_rgb(0_0_0/0.6)]";
@@ -14,10 +13,10 @@ const SHADOW_DEEP = "shadow-[0_30px_60px_rgb(20_70_224/0.25)] dark:shadow-[0_30p
 
 /** Left column: brand header, direct contact rows, promises and hours. */
 async function BrandCard() {
-  const [{ COMPANY, PROMISES, QUICK_CONTACTS, BRAND_CARD }, { WORDMARK }] = await Promise.all([getContact(), getSite()]);
+  const { brandCard: BRAND_CARD } = await getContact();
   return (
     <aside
-      aria-label="Contact details"
+      aria-label={BRAND_CARD.a11y.cardLabel}
       className={cx("flex flex-col overflow-hidden rounded-[28px] border border-line bg-surface", SHADOW_SOFT)}
     >
       <div className={cx("relative isolate flex min-h-[210px] flex-col justify-end overflow-hidden p-5 text-white sm:p-7", BRAND_GRADIENT)}>
@@ -25,7 +24,7 @@ async function BrandCard() {
         <span aria-hidden className="absolute top-[-40px] right-[-38px] -z-10 size-[200px] max-sm:right-auto max-sm:left-[338px] rounded-full border border-white/25" />
         <LayersArt className="absolute top-[22px] right-[30px] -z-10 h-[97px] w-[104px] max-sm:top-4 max-sm:right-4 max-sm:h-[56px] max-sm:w-[60px]" />
         <p className="absolute top-[22px] left-5 font-display text-[15px] font-semibold tracking-[0.28em] sm:top-[26px] sm:left-7">
-          {WORDMARK[0]} <span className="text-[#bfe6ff]">{WORDMARK[1]}</span>
+          {BRAND_CARD.wordmarkLead} <span className="text-[#bfe6ff]">{BRAND_CARD.wordmarkAccent}</span>
         </p>
         <p className="mt-16 max-w-[300px] font-display text-2xl leading-[1.15] tracking-[-0.01em] sm:mt-14 sm:text-[26px]">
           {BRAND_CARD.title}
@@ -36,7 +35,7 @@ async function BrandCard() {
       </div>
 
       <ul className="px-5 py-2 sm:px-7 sm:py-3">
-        {QUICK_CONTACTS.map((item) => {
+        {BRAND_CARD.quickContacts.map((item, index) => {
           const body = (
             <>
               <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-surface-raised text-brand">
@@ -51,7 +50,7 @@ async function BrandCard() {
             </>
           );
           return (
-            <li key={item.label + item.icon} className="border-b border-line last:border-b-0">
+            <li key={`${index}-${item.icon}`} className="border-b border-line last:border-b-0">
               {item.href ? (
                 <a
                   href={item.href}
@@ -71,8 +70,8 @@ async function BrandCard() {
         })}
       </ul>
 
-      <ul aria-label="How we work" className="flex flex-wrap gap-2 px-5 pt-1.5 pb-5 sm:px-7 sm:pb-6">
-        {PROMISES.filter((promise) => promise.trim()).map((promise, index) => (
+      <ul aria-label={BRAND_CARD.a11y.promisesLabel} className="flex flex-wrap gap-2 px-5 pt-1.5 pb-5 sm:px-7 sm:pb-6">
+        {BRAND_CARD.promises.filter((promise) => promise.trim()).map((promise, index) => (
           <li key={index} className={PILL}>
             <span aria-hidden className="size-1.5 rounded-full bg-accent" />
             {promise}
@@ -84,7 +83,7 @@ async function BrandCard() {
         <p className="flex flex-wrap gap-x-6 gap-y-2 rounded-[14px] bg-surface-raised px-4 py-3.5 text-[13px] font-medium text-fg-muted">
           <span className="flex items-center gap-2">
             <Glyph name="clock" className="size-[15px]" />
-            {COMPANY.hours}
+            {BRAND_CARD.hours}
           </span>
           <span className="flex items-center gap-2">
             <Glyph name="globe" className="size-[15px]" />
@@ -97,12 +96,9 @@ async function BrandCard() {
 }
 
 /** Page intro, brand card and the enquiry form. */
-export default async function ContactHero({ trail }: { trail: Crumb[] }) {
-  const [{ TIMEFRAMES, HERO, FORM }, { SITE, WHATSAPP_URL, ENQUIRY_SENT }, SERVICES] = await Promise.all([
-    getContact(),
-    getSite(),
-    getServices(),
-  ]);
+export default async function ContactHero() {
+  // Email and WhatsApp number are contact settings (Site & menus); every word on the page is the Contact page's own.
+  const [{ hero: HERO, form: FORM, TRAIL }, { SITE, WHATSAPP_URL }] = await Promise.all([getContact(), getSite()]);
   return (
     <section
       aria-labelledby="contact-title"
@@ -115,7 +111,7 @@ export default async function ContactHero({ trail }: { trail: Crumb[] }) {
       />
 
       <div className="reveal-load-stagger container-site">
-        <Breadcrumb items={trail} />
+        <Breadcrumb items={TRAIL} label={HERO.a11y.breadcrumbLabel} />
         <Eyebrow variant="pill" className="mt-6 sm:mt-7">
           {HERO.eyebrow}
         </Eyebrow>
@@ -131,14 +127,7 @@ export default async function ContactHero({ trail }: { trail: Crumb[] }) {
 
         <div className="mt-10 grid gap-5 sm:mt-14 sm:gap-6 xl:grid-cols-[500px_minmax(0,1fr)]">
           <div className={cx("rounded-[28px] border border-line bg-glass p-5 backdrop-blur-xl sm:p-9 xl:order-last", SHADOW_DEEP)}>
-            <ContactForm
-              SERVICES={SERVICES}
-              TIMEFRAMES={TIMEFRAMES}
-              SITE={SITE}
-              WHATSAPP_URL={WHATSAPP_URL}
-              copy={FORM}
-              sentCopy={ENQUIRY_SENT}
-            />
+            <ContactForm SITE={SITE} WHATSAPP_URL={WHATSAPP_URL} copy={FORM} />
           </div>
           <BrandCard />
         </div>

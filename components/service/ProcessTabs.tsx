@@ -7,6 +7,8 @@ import { arrowTarget } from "@/lib/utils";
 import { SMART_ANIMATE } from "@/components/ui/styles";
 
 type ProcessTabsProps = {
+  /** Screen-reader name of the track picker (the page's own copy). */
+  label: string;
   /** Section heading block shown above the tabs (server-rendered). */
   heading: React.ReactNode;
   tabs: { id: string; label: string }[];
@@ -15,7 +17,7 @@ type ProcessTabsProps = {
 };
 
 /** Vertical track picker ("New app" / "Existing app") that swaps the step list beside it. */
-export default function ProcessTabs({ heading, tabs, panels }: ProcessTabsProps) {
+export default function ProcessTabs({ label, heading, tabs, panels }: ProcessTabsProps) {
   const [active, setActive] = useState(0);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const baseId = useId();
@@ -31,7 +33,7 @@ export default function ProcessTabs({ heading, tabs, panels }: ProcessTabsProps)
     <div className="grid gap-8 sm:gap-12 lg:grid-cols-[513fr_695fr] lg:gap-[72px]">
       <div className="flex flex-col gap-5 sm:gap-[22px] lg:sticky lg:top-28 lg:self-start">
         {heading}
-        <div role="tablist" aria-orientation="vertical" aria-label="Project type" className="flex flex-col gap-2 pt-2">
+        <div role="tablist" aria-orientation="vertical" aria-label={label} className="flex flex-col gap-2 pt-2">
           {tabs.map((tab, index) => {
             const selected = index === active;
             return (

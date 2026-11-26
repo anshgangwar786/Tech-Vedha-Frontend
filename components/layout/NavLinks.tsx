@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HEADER_LINKS as BUNDLED_HEADER_LINKS, type NavLink } from "@/lib/site";
+import { HEADER as BUNDLED_HEADER, type NavLink } from "@/lib/site";
 import { cx } from "@/lib/cx";
 
 /** Desktop header links. The link for the current page gets a small accent dot (Figma "Active dot"). */
-export default function NavLinks({ HEADER_LINKS = BUNDLED_HEADER_LINKS }: { HEADER_LINKS?: NavLink[] }) {
+export default function NavLinks({ HEADER_LINKS = BUNDLED_HEADER.links }: { HEADER_LINKS?: NavLink[] }) {
   const pathname = usePathname();
 
   return HEADER_LINKS.map((link, index) => {

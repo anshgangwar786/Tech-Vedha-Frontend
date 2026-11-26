@@ -28,8 +28,8 @@ export default function Marquee({ items, tone, duration = 60, reverse = false }:
       >
         {[0, 1].map((copy) => (
           <div key={copy} aria-hidden={copy === 1} className="flex items-center text-[clamp(3.5rem,10vw,9rem)]">
-            {items.map((item) => (
-              <Fragment key={item}>
+            {items.map((item, index) => (
+              <Fragment key={index}>
                 <span className={word}>{item}</span>
                 <Sparkle aria-hidden className={separator} />
               </Fragment>

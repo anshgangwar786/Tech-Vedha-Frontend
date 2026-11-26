@@ -5,17 +5,15 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ArrowUpRight, Mail, Menu, MessageCircle, X } from "lucide-react";
 import ButtonLink from "@/components/ui/ButtonLink";
-import { SERVICES as BUNDLED_SERVICES, serviceHref, type Service } from "@/data/services";
 import { useDismiss } from "@/hooks/useDismiss";
 import { cx } from "@/lib/cx";
 import {
   EMAIL_URL as BUNDLED_EMAIL_URL,
-  HEADER_LINKS as BUNDLED_HEADER_LINKS,
   HEADER as BUNDLED_HEADER,
   SITE as BUNDLED_SITE,
   WHATSAPP_URL as BUNDLED_WHATSAPP_URL,
+  fillText,
   type HeaderCopy,
-  type NavLink,
 } from "@/lib/site";
 
 /**
@@ -24,20 +22,19 @@ import {
  * or when the window grows to the desktop layout.
  */
 export default function MobileMenu({
-  SERVICES = BUNDLED_SERVICES,
-  HEADER_LINKS = BUNDLED_HEADER_LINKS,
   SITE = BUNDLED_SITE,
   EMAIL_URL = BUNDLED_EMAIL_URL,
   WHATSAPP_URL = BUNDLED_WHATSAPP_URL,
   HEADER = BUNDLED_HEADER,
 }: {
-  SERVICES?: Service[];
-  HEADER_LINKS?: NavLink[];
   SITE?: { email: string };
   EMAIL_URL?: string;
   WHATSAPP_URL?: string;
   HEADER?: HeaderCopy;
 }) {
+  /** The header's own services list and links (Site & menus → Header). */
+  const SERVICES = HEADER.menuServices;
+  const HEADER_LINKS = HEADER.links;
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
@@ -66,7 +63,7 @@ export default function MobileMenu({
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label={open ? "Close menu" : "Open menu"}
+        aria-label={open ? HEADER.a11y.closeMenu : HEADER.a11y.openMenu}
         onClick={() => setOpen((value) => !value)}
         className="grid size-10 place-items-center rounded-full border border-line text-fg transition-colors aria-expanded:border-brand"
       >
@@ -76,40 +73,45 @@ export default function MobileMenu({
       <nav
         id={panelId}
         hidden={!open}
-        aria-label="Mobile"
+        aria-label={HEADER.a11y.mobileNav}
         // Any link tapped in the sheet closes it (and releases the scroll lock) as the next page opens.
         onClick={(event) => (event.target as HTMLElement).closest("a") && close()}
         className="absolute inset-x-0 top-full h-[calc(100dvh-72px)] overflow-y-auto overscroll-contain border-t border-line bg-bg animate-scene-in"
       >
         <div className="mx-auto flex min-h-full w-full max-w-[640px] flex-col px-5 pt-5 pb-8 sm:px-8">
-          <p className="text-xs font-medium tracking-[0.16em] text-fg-subtle uppercase">{HEADER.servicesLabel}</p>
-          <ul className="mt-2 divide-y divide-line border-y border-line">
-            {SERVICES.map((service) => {
-              const href = serviceHref(service);
-              const current = href === pathname;
-              return (
-                <li key={service.id}>
-                  <Link
-                    href={href}
-                    onClick={close}
-                    aria-current={current ? "page" : undefined}
-                    className="group flex min-h-16 items-center gap-3.5 py-3"
-                  >
-                    <span className="w-6 font-display text-lg leading-none font-light text-brand">{service.number}</span>
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="text-[11px] font-medium tracking-[0.12em] text-fg-subtle uppercase">
-                        {service.wing}
+          {/* Hidden when the admin removed every service from the menu. */}
+          {SERVICES.length > 0 && (
+            <>
+            <p className="text-xs font-medium tracking-[0.16em] text-fg-subtle uppercase">{HEADER.servicesLabel}</p>
+            <ul className="mt-2 divide-y divide-line border-y border-line">
+              {SERVICES.map((service, index) => {
+                const href = service.href || "/";
+                const current = href === pathname;
+                return (
+                  <li key={`${index}-${service.title}`}>
+                    <Link
+                      href={href}
+                      onClick={close}
+                      aria-current={current ? "page" : undefined}
+                      className="group flex min-h-16 items-center gap-3.5 py-3"
+                    >
+                      <span className="w-6 font-display text-lg leading-none font-light text-brand">{service.number}</span>
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="text-[11px] font-medium tracking-[0.12em] text-fg-subtle uppercase">
+                          {service.wing}
+                        </span>
+                        <span className={cx("text-base font-medium", current ? "text-brand" : "text-fg")}>
+                          {service.title}
+                        </span>
                       </span>
-                      <span className={cx("text-base font-medium", current ? "text-brand" : "text-fg")}>
-                        {service.title}
-                      </span>
-                    </span>
-                    <ArrowUpRight aria-hidden className="size-4 shrink-0 text-fg-subtle transition-colors group-hover:text-brand" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                      <ArrowUpRight aria-hidden className="size-4 shrink-0 text-fg-subtle transition-colors group-hover:text-brand" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            </>
+          )}
 
           <ul className="mt-4 flex flex-col">
             {HEADER_LINKS.map((link, index) => {
@@ -134,7 +136,7 @@ export default function MobileMenu({
           </ul>
 
           <div className="mt-auto flex flex-col gap-3 pt-8">
-            <ButtonLink href="/contact" arrow startProject className="w-full">
+            <ButtonLink href={HEADER.ctaHref || "/contact"} arrow startProject className="w-full">
               {HEADER.ctaLabel}
             </ButtonLink>
             <div className="grid grid-cols-2 gap-3">
@@ -151,7 +153,7 @@ export default function MobileMenu({
               <a
                 href={EMAIL_URL}
                 onClick={close}
-                aria-label={`Email ${SITE.email}`}
+                aria-label={fillText(HEADER.a11y.emailLink, { email: SITE.email })}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-line text-[15px] font-medium text-fg transition-colors hover:border-brand"
               >
                 <Mail aria-hidden className="size-4 text-brand" />

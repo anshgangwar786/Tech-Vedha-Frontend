@@ -10,19 +10,22 @@ import Testimonials from "@/components/home/Testimonials";
 import WhyTechVedha from "@/components/home/WhyTechVedha";
 import Faq from "@/components/ui/Faq";
 import JsonLd from "@/components/ui/JsonLd";
-import { faqJsonLd } from "@/lib/seo";
+import { faqJsonLd, pageMetadata } from "@/lib/seo";
 import { getHome } from "@/server/content";
 import { PageSeo } from "@/components/seo/SeoTags";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-};
+/** Title, description and keywords from Homepage → SEO in the admin. */
+export async function generateMetadata(): Promise<Metadata> {
+  const { seo } = await getHome();
+  return pageMetadata({ ...seo, path: "/", absoluteTitle: true });
+}
 
+/** Every section reads the homepage's own content (Homepage in the admin), top to bottom. */
 export default async function HomePage() {
-  const { FAQS } = await getHome();
+  const { faq, stories, contact } = await getHome();
   return (
     <>
-      <JsonLd data={[faqJsonLd(FAQS)]} />
+      <JsonLd data={[faqJsonLd(faq.items.filter((item) => item.question.trim()))]} />
       <PageSeo path={"/"} />
       <Hero />
       <Blueprint />
@@ -31,9 +34,9 @@ export default async function HomePage() {
       <Security />
       <Process />
       <Pillars />
-      <Testimonials />
-      <Faq />
-      <Contact />
+      <Testimonials content={stories} />
+      <Faq content={faq} />
+      <Contact content={contact} />
     </>
   );
 }

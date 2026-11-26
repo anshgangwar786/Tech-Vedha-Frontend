@@ -3,7 +3,7 @@ import HeadingStack from "@/components/ui/HeadingStack";
 import { withCount } from "@/data/home";
 import { countWord } from "@/data/services";
 import { cx } from "@/lib/cx";
-import { getHome, getServices } from "@/server/content";
+import { getHome } from "@/server/content";
 
 /** Isometric slab transform taken from the Figma "Blueprint / Scene" component. */
 const ISOMETRIC = "rotate(-27.92deg) scaleY(0.83) skewX(34.16deg)";
@@ -14,7 +14,10 @@ const SLAB_GAP_PERCENT = 11.6;
 const MAX_STACK_SPAN_PERCENT = 46;
 
 export default async function Blueprint() {
-  const [SERVICES, { blueprint }] = await Promise.all([getServices(), getHome()]);
+  const { blueprint } = await getHome();
+  /** The page's own slabs (Homepage → Digital blueprint), top to bottom. */
+  // A slab without a title is a half-filled draft: left out.
+  const SERVICES = blueprint.slabs.filter((slab) => slab.title.trim());
   const count = countWord(SERVICES.length);
   const gap = Math.min(SLAB_GAP_PERCENT, MAX_STACK_SPAN_PERCENT / Math.max(1, SERVICES.length - 1));
   const span = gap * (SERVICES.length - 1);
@@ -51,7 +54,7 @@ export default async function Blueprint() {
             /* `--s` orders the stack-up entrance: foundation lands first, marketing last. */
             const style = { top, "--s": index } as CSSProperties;
             return (
-              <div key={service.id}>
+              <div key={`${index}-${service.title}`}>
                 <div
                   aria-hidden
                   className="stack-slab absolute left-[22.4%] flex h-[30.2%] w-[55.2%] items-center justify-center md:left-[8.4%]"
@@ -89,8 +92,8 @@ export default async function Blueprint() {
         </div>
 
         <ol data-reveal-stagger className="grid gap-4 sm:grid-cols-2 md:hidden">
-          {SERVICES.map((service) => (
-            <li key={service.id} className="border-l border-accent pl-3">
+          {SERVICES.map((service, index) => (
+            <li key={`${index}-${service.title}`} className="border-l border-accent pl-3">
               <span className="block text-[11px] font-medium tracking-[0.12em] text-fg-subtle uppercase">
                 {service.number} · {service.wing}
               </span>

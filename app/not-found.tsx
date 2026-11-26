@@ -5,11 +5,14 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import { DISPLAY_TITLE } from "@/components/ui/styles";
 import { getSite } from "@/server/content";
 
-export const metadata: Metadata = { title: "Page not found" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { NOT_FOUND } = await getSite();
+  return { title: NOT_FOUND.metaTitle };
+}
 
 /** Branded 404 for unknown URLs and pages that call notFound() (e.g. a service without its own page yet). */
 export default async function NotFound() {
-  const { NOT_FOUND: copy, SITEMAP_PAGE } = await getSite();
+  const { NOT_FOUND: copy } = await getSite();
   return (
     <section
       aria-labelledby="not-found-title"
@@ -23,20 +26,19 @@ export default async function NotFound() {
         </h1>
         <p className="max-w-[480px] text-[17px] leading-[1.6] text-fg-muted sm:text-lg">{copy.intro}</p>
         <CtaButtons href={copy.primaryCta.href} label={copy.primaryCta.label} secondary={copy.secondaryCta} className="pt-1" />
-        <nav aria-label="Popular sections" className="mt-6 flex flex-wrap gap-2.5">
-          {/* "Start a project" is already the main button above. */}
-          {SITEMAP_PAGE.homeSections
-            .filter((section) => section.href !== "/#contact" && section.title.trim())
-            .map((section) => (
+        {copy.links.length > 0 && (
+          <nav aria-label={copy.a11y.linksLabel} className="mt-6 flex flex-wrap gap-2.5">
+            {copy.links.map((link, index) => (
               <Link
-                key={section.href}
-                href={section.href}
+                key={index}
+                href={link.href}
                 className="inline-flex h-10 items-center rounded-full border border-line bg-surface px-4 text-sm font-medium text-fg-muted transition-colors hover:border-brand hover:text-fg"
               >
-                {section.title}
+                {link.label}
               </Link>
             ))}
-        </nav>
+          </nav>
+        )}
       </div>
     </section>
   );

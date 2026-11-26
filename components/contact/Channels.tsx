@@ -7,7 +7,7 @@ import { getContact } from "@/server/content";
 
 /** "Pick the channel that suits you": email, WhatsApp and call cards, then the three next steps. */
 export default async function Channels() {
-  const { CHANNELS, NEXT_STEPS, CHANNELS_SECTION: copy, NEXT_STEPS_SECTION: next } = await getContact();
+  const { channels: copy, nextSteps: next } = await getContact();
   return (
     <section aria-labelledby="channels-title" className={cx("defer-render bg-bg-deep", SECTION_TIGHT)}>
       <div className="container-site">
@@ -20,8 +20,13 @@ export default async function Channels() {
           introClassName="max-w-[420px]"
         />
 
-        <ul data-reveal-stagger className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 md:grid-cols-3">
-          {CHANNELS.map((channel, index) => (
+        {/* Three across by default; two cards share the row, four or more wrap. */}
+        <ul
+          data-reveal-stagger
+          className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 md:grid-cols-[repeat(var(--cols),minmax(0,1fr))]"
+          style={{ "--cols": Math.min(3, Math.max(1, copy.cards.length)) } as React.CSSProperties}
+        >
+          {copy.cards.map((channel, index) => (
             <li
               key={index}
               className={cx("relative flex flex-col items-start gap-3 rounded-3xl border border-line bg-surface p-6 sm:gap-3.5 sm:p-8", CARD_HOVER)}
@@ -31,20 +36,26 @@ export default async function Channels() {
               </span>
               <h3 className="pt-1 font-display text-[26px] leading-tight text-fg sm:pt-2.5 sm:text-[28px]">{channel.title}</h3>
               <p className="text-[15px] leading-[1.55] text-fg-muted">{channel.description}</p>
-              <p className="text-[15px] font-medium break-all text-brand">{channel.value}</p>
-              <p className={PILL}>
-                <Glyph name={channel.tag.icon} className="size-[13px]" />
-                {channel.tag.label}
-              </p>
-              {/* The whole card is the hit area. */}
-              <a
-                href={channel.href}
-                {...externalLinkProps(channel.href)}
-                className="group mt-auto flex items-center gap-2 pt-1 text-sm font-medium text-fg after:absolute after:inset-0 after:rounded-3xl sm:pt-2"
-              >
-                {channel.cta}
-                <Glyph name="arrow" className="size-3.5 transition-transform duration-250 group-hover:translate-x-0.5" />
-              </a>
+              {channel.value.trim() && <p className="text-[15px] font-medium break-all text-brand">{channel.value}</p>}
+              {channel.tag.label.trim() && (
+                <p className={PILL}>
+                  <Glyph name={channel.tag.icon} className="size-[13px]" />
+                  {channel.tag.label}
+                </p>
+              )}
+              {/* With a link the whole card is the hit area; without one the button text stays plain. */}
+              {channel.href ? (
+                <a
+                  href={channel.href}
+                  {...externalLinkProps(channel.href)}
+                  className="group mt-auto flex items-center gap-2 pt-1 text-sm font-medium text-fg after:absolute after:inset-0 after:rounded-3xl sm:pt-2"
+                >
+                  {channel.cta}
+                  <Glyph name="arrow" className="size-3.5 transition-transform duration-250 group-hover:translate-x-0.5" />
+                </a>
+              ) : (
+                channel.cta.trim() && <p className="mt-auto pt-1 text-sm font-medium text-fg sm:pt-2">{channel.cta}</p>
+              )}
             </li>
           ))}
         </ul>
@@ -54,8 +65,11 @@ export default async function Channels() {
             <p className="text-[11px] font-medium tracking-[0.16em] text-fg-subtle uppercase">{next.eyebrow}</p>
             <h3 className="font-display text-[28px] leading-tight text-fg lg:whitespace-nowrap">{next.title}</h3>
           </div>
-          <ol className="grid md:grid-cols-3">
-            {NEXT_STEPS.map((step, index) => (
+          <ol
+            className="grid md:grid-cols-[repeat(var(--cols),minmax(0,1fr))]"
+            style={{ "--cols": Math.min(4, Math.max(1, next.steps.length)) } as React.CSSProperties}
+          >
+            {next.steps.map((step, index) => (
               <li
                 key={index}
                 className="flex gap-4 border-b border-line p-5 last:border-b-0 sm:p-7 md:border-r md:border-b-0 md:last:border-r-0"

@@ -6,25 +6,29 @@ import Chip from "@/components/ui/Chip";
 import Eyebrow from "@/components/ui/Eyebrow";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { SMART_ANIMATE } from "@/components/ui/styles";
-import { PROCESS_STEPS as BUNDLED_PROCESS_STEPS, type ProcessStep, type ProcessStepId } from "@/data/home";
+import { PROCESS as BUNDLED_PROCESS, PROCESS_STEPS as BUNDLED_PROCESS_STEPS, type ProcessStep } from "@/data/home";
 import { useInView } from "@/hooks/useInView";
 import { cx } from "@/lib/cx";
 
 const AUTO_ADVANCE_MS = 5000;
 /** Hovering must rest this long before a step opens, so sweeping across the row doesn't flicker. */
 const HOVER_INTENT_MS = 80;
-/** Fixed: steps are keyed by id in the admin, so their number never changes. */
-const STEP_COUNT = BUNDLED_PROCESS_STEPS.length;
 
 
 type ProcessStepperProps = {
   /** Live steps from the admin (bundled copy when omitted). */
   PROCESS_STEPS?: ProcessStep[];
   /** Server-rendered example per step. */
-  visuals: Record<ProcessStepId, React.ReactNode>;
+  visuals: React.ReactNode[];
   /** Section heading and the label above each example (admin-edited). */
   header?: ProcessHeader;
+  /** Screen-reader labels (admin-edited). */
+  a11y?: ProcessA11y;
 };
+
+type ProcessA11y = { stepsLabel: string; previousLabel: string; nextLabel: string; stepColumnLabel: string };
+
+const DEFAULT_A11Y: ProcessA11y = BUNDLED_PROCESS.a11y;
 
 type ProcessHeader = {
   eyebrow: string;
@@ -36,15 +40,7 @@ type ProcessHeader = {
   stepCounter: string;
 };
 
-const DEFAULT_HEADER: ProcessHeader = {
-  eyebrow: "Process",
-  title: ["From idea to launch,", "and beyond."],
-  intro: "Six clear steps, with something you can review at every one.",
-  exampleLabel: "Example project · Showroom app",
-  nextLabel: "Next",
-  restartLabel: "Start over",
-  stepCounter: "Step {n} of {total}",
-};
+const DEFAULT_HEADER: ProcessHeader = BUNDLED_PROCESS;
 
 /** "Step {n} of {total}" with the numbers filled in. */
 const stepLabel = (pattern: string, n: number, total: number) =>
@@ -54,13 +50,18 @@ const stepLabel = (pattern: string, n: number, total: number) =>
 const SWIPE_MIN_PX = 50;
 
 /**
- * Six-step process.
+ * Process steps (six by default; steps can be added or removed in the admin).
  * - Desktop (lg): an accordion row; the open step grows while the others shrink to 86 px columns. Steps open
  *   on hover, focus or click, and it advances every 5 s until the visitor takes over.
  * - Phones and tablets: a step rail to jump anywhere, one card at a time (swipe to move), and Prev / Next
  *   controls under the card. Every step shares one grid cell, so the card never changes height between steps.
  */
-export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCESS_STEPS, header = DEFAULT_HEADER }: ProcessStepperProps) {
+export default function ProcessStepper({
+  visuals,
+  PROCESS_STEPS = BUNDLED_PROCESS_STEPS,
+  header = DEFAULT_HEADER,
+  a11y = DEFAULT_A11Y,
+}: ProcessStepperProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -69,6 +70,8 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
   const railRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const inView = useInView(rootRef);
+  /** Steps can be added or removed in the admin. */
+  const STEP_COUNT = Math.max(1, PROCESS_STEPS.length);
   const isLast = activeIndex === STEP_COUNT - 1;
 
   useEffect(() => {
@@ -79,7 +82,7 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
     if (!window.matchMedia("(min-width: 1024px)").matches) return;
     const timer = window.setTimeout(() => setActiveIndex((index) => (index + 1) % STEP_COUNT), AUTO_ADVANCE_MS);
     return () => window.clearTimeout(timer);
-  }, [activeIndex, autoplay, paused, inView]);
+  }, [activeIndex, autoplay, paused, inView, STEP_COUNT]);
 
   useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
@@ -139,7 +142,7 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
             <button
               type="button"
               onClick={() => goTo(activeIndex - 1)}
-              aria-label="Previous step"
+              aria-label={a11y.previousLabel}
               className="grid size-11 place-items-center rounded-full border border-line text-fg transition-colors hover:border-brand"
             >
               <ChevronLeft aria-hidden className="size-4" />
@@ -147,7 +150,7 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
             <button
               type="button"
               onClick={() => goTo(activeIndex + 1)}
-              aria-label="Next step"
+              aria-label={a11y.nextLabel}
               className="grid size-11 place-items-center rounded-full border border-line text-fg transition-colors hover:border-brand"
             >
               <ChevronRight aria-hidden className="size-4" />
@@ -160,14 +163,14 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
       <div
         ref={railRef}
         role="group"
-        aria-label="Process steps"
+        aria-label={a11y.stepsLabel}
         className="mt-8 flex gap-2 overflow-x-auto [scrollbar-width:none] max-sm:scroll-row sm:mt-10 lg:hidden [&::-webkit-scrollbar]:hidden"
       >
         {PROCESS_STEPS.map((step, index) => {
           const current = index === activeIndex;
           return (
             <button
-              key={step.id}
+              key={index}
               type="button"
               onClick={() => goTo(index)}
               aria-current={current ? "step" : undefined}
@@ -202,7 +205,7 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
           const open = index === activeIndex;
           return (
             <li
-              key={step.id}
+              key={index}
               onPointerEnter={open ? undefined : (event) => event.pointerType !== "touch" && hoverStep(index)}
               onPointerLeave={cancelHover}
               className={cx(
@@ -213,8 +216,14 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
                   : "grow-0 border-line bg-surface hover:border-brand max-lg:pointer-events-none max-lg:invisible",
               )}
             >
-              <StepPanel step={step} index={index} open={open} activeIndex={activeIndex} visual={visuals[step.id]} exampleLabel={header.exampleLabel} stepCounter={header.stepCounter} />
-              <StepColumn step={step} open={open} done={index < activeIndex} onSelect={() => goTo(index)} />
+              <StepPanel step={step} index={index} open={open} activeIndex={activeIndex} visual={visuals[index]} total={STEP_COUNT} exampleLabel={header.exampleLabel} stepCounter={header.stepCounter} />
+              <StepColumn
+                step={step}
+                open={open}
+                done={index < activeIndex}
+                onSelect={() => goTo(index)}
+                label={a11y.stepColumnLabel.replaceAll("{number}", step.number).replaceAll("{title}", step.title)}
+              />
             </li>
           );
         })}
@@ -226,7 +235,7 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
           type="button"
           onClick={() => goTo(activeIndex - 1)}
           disabled={activeIndex === 0}
-          aria-label="Previous step"
+          aria-label={a11y.previousLabel}
           className="grid size-12 shrink-0 place-items-center rounded-full border border-line bg-surface text-fg transition-colors hover:border-brand disabled:opacity-40"
         >
           <ChevronLeft aria-hidden className="size-5" />
@@ -235,7 +244,7 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
           <span aria-hidden className="flex w-full max-w-[160px] gap-1">
             {PROCESS_STEPS.map((step, index) => (
               <span
-                key={step.id}
+                key={index}
                 className={cx(
                   "h-1 flex-1 rounded-full transition-colors",
                   SMART_ANIMATE,
@@ -256,12 +265,12 @@ export default function ProcessStepper({ visuals, PROCESS_STEPS = BUNDLED_PROCES
         >
           {isLast ? (
             <>
-              {header.restartLabel || "Start over"}
+              {header.restartLabel}
               <RotateCcw aria-hidden className="size-4" />
             </>
           ) : (
             <>
-              {header.nextLabel || "Next"}
+              {header.nextLabel}
               <ChevronRight aria-hidden className="size-5" />
             </>
           )}
@@ -277,18 +286,21 @@ type StepPanelProps = {
   open: boolean;
   activeIndex: number;
   visual: React.ReactNode;
+  total: number;
   exampleLabel: string;
   stepCounter: string;
 };
 
 /** Expanded content. Fixed to the open width so the column reveals it instead of squashing it. */
-function StepPanel({ step, index, open, activeIndex, visual, exampleLabel, stepCounter }: StepPanelProps) {
+function StepPanel({ step, index, open, activeIndex, visual, total, exampleLabel, stepCounter }: StepPanelProps) {
   return (
     <article
+      // Every other step is an 86 px column plus a 12 px gap; the open panel keeps the rest of the row.
+      style={{ "--collapsed": `${(total - 1) * 98}px` } as React.CSSProperties}
       aria-hidden={!open}
       inert={!open}
       className={cx(
-        "relative isolate flex h-full w-full flex-col transition-opacity lg:absolute lg:inset-y-0 lg:left-0 lg:w-[calc(100cqw-490px)]",
+        "relative isolate flex h-full w-full flex-col transition-opacity lg:absolute lg:inset-y-0 lg:left-0 lg:w-[calc(100cqw-var(--collapsed))]",
         SMART_ANIMATE,
         open ? "opacity-100 delay-100" : "pointer-events-none opacity-0",
       )}
@@ -303,9 +315,9 @@ function StepPanel({ step, index, open, activeIndex, visual, exampleLabel, stepC
           {step.number} · {step.title}
         </Eyebrow>
         <span aria-hidden className="hidden gap-1.5 sm:flex">
-          {BUNDLED_PROCESS_STEPS.map((dot, dotIndex) => (
+          {Array.from({ length: total }, (_, dotIndex) => (
             <span
-              key={dot.id}
+              key={dotIndex}
               className={cx(
                 "h-0.5 w-6 rounded-full transition-colors",
                 SMART_ANIMATE,
@@ -337,13 +349,13 @@ function StepPanel({ step, index, open, activeIndex, visual, exampleLabel, stepC
         </h3>
         <p className="mt-2 max-w-[470px] text-base leading-[1.6] text-fg-muted sm:text-[17px]">{step.summary}</p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          {step.deliverables.map((deliverable, chipIndex) => (
+          {step.deliverables.filter((deliverable) => deliverable.trim()).map((deliverable, chipIndex) => (
             <Chip key={chipIndex} className="border border-line">
               {deliverable}
             </Chip>
           ))}
           <span className="ml-auto text-xs text-fg-subtle max-lg:hidden">
-            {stepLabel(stepCounter, index + 1, STEP_COUNT)}
+            {stepLabel(stepCounter, index + 1, total)}
           </span>
         </div>
       </div>
@@ -351,17 +363,17 @@ function StepPanel({ step, index, open, activeIndex, visual, exampleLabel, stepC
   );
 }
 
-type StepColumnProps = { step: ProcessStep; open: boolean; done: boolean; onSelect: () => void };
+type StepColumnProps = { step: ProcessStep; open: boolean; done: boolean; onSelect: () => void; label: string };
 
 /** Collapsed 86 px column: number, centre dot and vertical label. Fades out as its step opens. */
-function StepColumn({ step, open, done, onSelect }: StepColumnProps) {
+function StepColumn({ step, open, done, onSelect, label }: StepColumnProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
       tabIndex={open ? -1 : 0}
       aria-hidden={open}
-      aria-label={`Step ${step.number}: ${step.title}`}
+      aria-label={label}
       className={cx(
         "absolute inset-y-0 left-0 hidden w-[86px] flex-col items-center justify-between py-5 transition-opacity lg:flex",
         SMART_ANIMATE,

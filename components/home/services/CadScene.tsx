@@ -1,14 +1,9 @@
 import { Circle, Pencil, RectangleHorizontal, Square, Type } from "lucide-react";
 import MockWindow from "@/components/home/mock/MockWindow";
+import type { ServiceScenesCopy } from "@/data/home";
 import { cx } from "@/lib/cx";
 
 const TOOLS = [Pencil, Square, Circle, RectangleHorizontal, Type];
-
-const BOQ = [
-  { item: "Vitrified flooring", qty: 102, unit: "sq.m" },
-  { item: "Gypsum partition", qty: 18, unit: "r.m" },
-  { item: "LED downlights", qty: 24, unit: "nos" },
-];
 
 /** Plan fixtures, positioned as % of the outer walls: windows, display tables, counter, doors, desk, shelving. */
 const FURNITURE = [
@@ -46,18 +41,20 @@ function Room({ name, area, className }: { name: string; area: string; className
 }
 
 /** Ground-floor plan in a CAD window, with the bill of quantities alongside. */
-export default function CadScene() {
+export default function CadScene({ copy }: { copy: ServiceScenesCopy["cad"] }) {
   return (
     <div className="relative w-full max-w-[500px] pb-24">
       <MockWindow
-        title="Ground floor plan"
+        title={copy.windowTitle}
         actions={
           <>
-            <span className="rounded-md border border-line px-2 py-0.5 text-[10px] text-fg-muted">A-101</span>
+            <span className="rounded-md border border-line px-2 py-0.5 text-[10px] text-fg-muted">{copy.sheet}</span>
             <span className="flex rounded-full border border-line p-0.5 text-[10px]">
-              <span className="rounded-full bg-primary px-2 py-0.5 text-white">2D</span>
-              <span className="px-2 py-0.5 text-fg-muted">3D</span>
-              <span className="px-2 py-0.5 text-fg-muted">BOQ</span>
+              {copy.views.map((view, index) => (
+                <span key={index} className={index === 0 ? "rounded-full bg-primary px-2 py-0.5 text-white" : "px-2 py-0.5 text-fg-muted"}>
+                  {view}
+                </span>
+              ))}
             </span>
           </>
         }
@@ -72,18 +69,18 @@ export default function CadScene() {
           </ul>
           <div className="relative h-[284px] flex-1 bg-grid">
             <p className="absolute top-3 left-[13%] w-[54%] border-b border-brand/60 text-center text-[10px] text-fg-muted">
-              7.9 m
+              {copy.widthLabel}
             </p>
             <p className="absolute top-3 left-[67%] w-[22%] border-b border-brand/60 text-center text-[10px] text-fg-muted">
-              4.1 m
+              {copy.sideWidthLabel}
             </p>
             <p className="absolute top-[17%] left-[4%] h-[73%] [writing-mode:vertical-rl] rotate-180 border-r border-brand/60 text-center text-[10px] text-fg-muted">
-              8.5 m
+              {copy.depthLabel}
             </p>
             <div className="absolute top-[17%] left-[13%] h-[73%] w-[76%] border-[3px] border-accent">
-              <Room name="SHOWROOM" area="67 m²" className="inset-y-0 left-0 w-[66%] border-r-2 pt-[22%]" />
-              <Room name="OFFICE" area="17 m²" className="top-0 right-0 h-1/2 w-[34%] border-b-2 pt-[22%]" />
-              <Room name="STORAGE" area="17 m²" className="right-0 bottom-0 h-1/2 w-[34%]" />
+              <Room name={copy.rooms.showroom.name} area={copy.rooms.showroom.area} className="inset-y-0 left-0 w-[66%] border-r-2 pt-[22%]" />
+              <Room name={copy.rooms.office.name} area={copy.rooms.office.area} className="top-0 right-0 h-1/2 w-[34%] border-b-2 pt-[22%]" />
+              <Room name={copy.rooms.storage.name} area={copy.rooms.storage.area} className="right-0 bottom-0 h-1/2 w-[34%]" />
               {FURNITURE.map((item) => (
                 <span key={item} aria-hidden className={cx("absolute border border-accent/60", item)} />
               ))}
@@ -91,28 +88,28 @@ export default function CadScene() {
           </div>
         </div>
         <p className="flex gap-4 border-t border-line px-3 py-1.5 text-[10px] text-fg-muted">
-          <span>Scale 1:100</span>
-          <span>Units: m</span>
-          <span>Snap on</span>
+          {copy.statusBar.map((item, index) => (
+            <span key={index}>{item}</span>
+          ))}
         </p>
       </MockWindow>
 
       <div className="absolute right-0 bottom-0 w-[268px] rounded-[14px] border border-line bg-surface-raised p-3.5 shadow-[0_28px_60px_-28px_rgb(3_10_24/0.75)]">
         <p className="flex items-center justify-between text-xs font-medium text-fg">
-          Bill of quantities
-          <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] text-white">BOQ</span>
+          {copy.boqTitle}
+          <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] text-white">{copy.boqBadge}</span>
         </p>
         <table className="mt-2 w-full text-[11px]">
           <thead>
             <tr className="border-b border-line text-left text-[10px] tracking-[0.08em] text-fg-subtle">
-              <th className="py-1.5 font-medium">ITEM</th>
-              <th className="py-1.5 text-right font-medium">QTY</th>
-              <th className="py-1.5 pl-3 font-medium">UNIT</th>
+              <th className="py-1.5 font-medium">{copy.itemHeader}</th>
+              <th className="py-1.5 text-right font-medium">{copy.qtyHeader}</th>
+              <th className="py-1.5 pl-3 font-medium">{copy.unitHeader}</th>
             </tr>
           </thead>
           <tbody>
-            {BOQ.map((row) => (
-              <tr key={row.item} className="text-fg">
+            {copy.boq.map((row, index) => (
+              <tr key={index} className="text-fg">
                 <td className="pt-2">{row.item}</td>
                 <td className="pt-2 text-right">{row.qty}</td>
                 <td className="pt-2 pl-3 text-fg-muted">{row.unit}</td>

@@ -2,17 +2,20 @@ import { Check } from "lucide-react";
 import MockWindow from "@/components/home/mock/MockWindow";
 import StatusIcon from "@/components/home/mock/StatusIcon";
 import Chip from "@/components/ui/Chip";
-import type { ProcessStepId } from "@/data/home";
+import type { ProcessVisualsCopy } from "@/data/home";
 import { cx } from "@/lib/cx";
 
-/** Illustrations for each process step, matching the Figma state frames (Process · Step 1–6). */
+/**
+ * Illustrations for each process step, matching the Figma state frames (Process · Step 1–6). Every word in them is
+ * the homepage's own copy (Homepage → How we work → Visuals).
+ */
 
 function Checklist({ items }: { items: { label: string; done: boolean }[] }) {
   return (
     <ul className="px-3 pb-1">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <li
-          key={item.label}
+          key={index}
           className="flex items-center justify-between border-b border-line py-1.5 text-[11px] text-fg last:border-0"
         >
           {item.label}
@@ -23,37 +26,29 @@ function Checklist({ items }: { items: { label: string; done: boolean }[] }) {
   );
 }
 
-function Discover() {
+function Discover({ copy }: { copy: ProcessVisualsCopy["discover"] }) {
   return (
-    <MockWindow title="Project brief">
+    <MockWindow title={copy.windowTitle}>
       <div className="px-3 pt-3">
-        <p className="font-display text-[13px] text-fg">Showroom app</p>
+        <p className="font-display text-[13px] text-fg">{copy.projectName}</p>
         <p className="mt-1.5 flex gap-1.5">
-          {["Retail", "Android", "iOS"].map((tag) => (
-            <Chip key={tag} size="xs">
+          {copy.tags.map((tag, index) => (
+            <Chip key={index} size="xs">
               {tag}
             </Chip>
           ))}
         </p>
       </div>
       <div className="mt-2">
-        <Checklist
-          items={[
-            { label: "Goals", done: true },
-            { label: "Customers", done: true },
-            { label: "Must-have features", done: true },
-            { label: "Timeline", done: false },
-          ]}
-        />
+        <Checklist items={copy.checklist} />
       </div>
     </MockWindow>
   );
 }
 
 const SWATCHES = ["bg-[#1e6ff0]", "bg-[#4db2ff]", "bg-line", "bg-white"];
-const SCREENS = ["Home", "Product", "Checkout"];
 
-function Design() {
+function Design({ copy }: { copy: ProcessVisualsCopy["design"] }) {
   return (
     <div className="grid grid-cols-[1.4fr_1fr] gap-3">
       {/* Wireframe of the home screen, hero block highlighted. */}
@@ -67,9 +62,11 @@ function Design() {
           </span>
         </div>
         <div className="relative h-14 rounded-lg border border-accent bg-surface-raised">
-          <span className="absolute -right-1.5 -bottom-2 rounded-md bg-primary px-1.5 py-0.5 text-[8px] font-medium text-white">
-            Hero
-          </span>
+          {copy.heroLabel.trim() && (
+            <span className="absolute -right-1.5 -bottom-2 rounded-md bg-primary px-1.5 py-0.5 text-[8px] font-medium text-white">
+              {copy.heroLabel}
+            </span>
+          )}
         </div>
         <div className="grid grid-cols-3 gap-1.5">
           {[0, 1, 2].map((card) => (
@@ -80,17 +77,17 @@ function Design() {
         <span className="h-6" />
       </div>
       <div className="flex flex-col gap-1.5 pt-1">
-        <p className="text-[10px] font-medium tracking-[0.08em] text-fg-muted">STYLES</p>
+        <p className="text-[10px] font-medium tracking-[0.08em] text-fg-muted">{copy.stylesLabel}</p>
         <p className="flex gap-1">
           {SWATCHES.map((swatch) => (
             <span key={swatch} className={cx("size-3.5 rounded-[3px] border border-white/10", swatch)} />
           ))}
         </p>
-        <p className="font-display text-lg leading-none font-light text-fg">Aa</p>
-        <p className="mt-1 text-[10px] font-medium tracking-[0.08em] text-fg-muted">SCREENS</p>
+        <p className="font-display text-lg leading-none font-light text-fg">{copy.typeSample}</p>
+        <p className="mt-1 text-[10px] font-medium tracking-[0.08em] text-fg-muted">{copy.screensLabel}</p>
         <ul className="flex flex-col gap-1 text-[10.5px]">
-          {SCREENS.map((screen, index) => (
-            <li key={screen} className={cx("flex items-center gap-1.5", index === 0 ? "text-fg" : "text-fg-muted")}>
+          {copy.screens.map((screen, index) => (
+            <li key={index} className={cx("flex items-center gap-1.5", index === 0 ? "text-fg" : "text-fg-muted")}>
               <span className={cx("size-2 rounded-[2px]", index === 0 ? "bg-brand" : "border border-line")} />
               {screen}
             </li>
@@ -101,32 +98,45 @@ function Design() {
   );
 }
 
-/** Code shown in the Build step: [text, token type] pairs per line, coloured like an editor theme. */
-const CODE: Array<Array<[string, "kw" | "fn" | "tx"]>> = [
-  [["export async function ", "kw"], ["checkout", "fn"], ["(cart) {", "tx"]],
-  [["  const ", "kw"], ["order = ", "tx"], ["await ", "kw"], ["api.", "tx"], ["create", "fn"], ["(cart);", "tx"]],
-  [["  await ", "kw"], ["payments.", "tx"], ["charge", "fn"], ["(order);", "tx"]],
-  [["  return ", "kw"], ["notify", "fn"], ["(order.id);", "tx"]],
-  [["}", "tx"]],
-];
+/** Words coloured like an editor theme: keywords, then names followed by "(" (function calls), the rest plain. */
+const KEYWORDS = /^(?:export|async|function|const|let|var|await|return|import|from|if|else|new|class|default)$/;
 const TOKEN_COLOR = { kw: "text-brand", fn: "text-accent", tx: "text-fg" };
 
-function Build() {
+function highlight(line: string): [string, keyof typeof TOKEN_COLOR][] {
+  const parts: [string, keyof typeof TOKEN_COLOR][] = [];
+  const re = /[A-Za-z_$][\w$]*/g;
+  let last = 0;
+  for (let match = re.exec(line); match; match = re.exec(line)) {
+    const word = match[0];
+    const end = match.index + word.length;
+    const type = KEYWORDS.test(word) ? "kw" : line[end] === "(" ? "fn" : "tx";
+    if (type === "tx") continue;
+    if (match.index > last) parts.push([line.slice(last, match.index), "tx"]);
+    parts.push([word, type]);
+    last = end;
+  }
+  if (last < line.length) parts.push([line.slice(last), "tx"]);
+  return parts;
+}
+
+function Build({ copy }: { copy: ProcessVisualsCopy["build"] }) {
   return (
     <MockWindow
-      title="checkout.ts"
+      title={copy.fileName}
       actions={
-        <span className="flex items-center gap-1 text-[9.5px] font-medium text-fg-muted">
-          <span className="size-1.5 rounded-full bg-accent" />
-          Build passing
-        </span>
+        copy.status.trim() ? (
+          <span className="flex items-center gap-1 text-[9.5px] font-medium text-fg-muted">
+            <span className="size-1.5 rounded-full bg-accent" />
+            {copy.status}
+          </span>
+        ) : undefined
       }
     >
       <pre className="overflow-x-auto px-3 py-2.5 font-mono text-[10.5px] leading-[20px]">
-        {CODE.map((line, index) => (
+        {copy.code.map((line, index) => (
           <code key={index} className="block whitespace-pre">
             <span className="mr-3 inline-block w-2 text-right text-fg-subtle select-none">{index + 1}</span>
-            {line.map(([text, type], part) => (
+            {highlight(line).map(([text, type], part) => (
               <span key={part} className={TOKEN_COLOR[type]}>
                 {text}
               </span>
@@ -135,54 +145,50 @@ function Build() {
         ))}
       </pre>
       <p className="flex gap-1.5 px-3 pb-3">
-        <Chip size="xs">main</Chip>
-        <Chip size="xs">Review approved</Chip>
+        {copy.chips.map((chip, index) => (
+          <Chip key={index} size="xs">
+            {chip}
+          </Chip>
+        ))}
       </p>
     </MockWindow>
   );
 }
 
-function Test() {
+function Test({ copy }: { copy: ProcessVisualsCopy["test"] }) {
   return (
-    <MockWindow title="Test run" actions={<span className="text-[9.5px] font-medium text-fg-muted">5 of 6</span>}>
+    <MockWindow title={copy.windowTitle} actions={<span className="text-[9.5px] font-medium text-fg-muted">{copy.progress}</span>}>
       <div className="px-3 pt-3">
         <div className="h-1 overflow-hidden rounded-full bg-surface-raised">
           <span className="block h-full w-5/6 rounded-full bg-linear-to-r from-[#1e9bf0] to-[#1446e0]" />
         </div>
       </div>
-      <Checklist
-        items={[
-          { label: "Login and sign-up", done: true },
-          { label: "Payments", done: true },
-          { label: "Android devices", done: true },
-          { label: "iPhone and iPad", done: true },
-        ]}
-      />
+      <Checklist items={copy.checklist} />
       <p className="flex items-center justify-between border-t border-line px-3 py-1.5 text-[11px] text-fg">
-        Load test
+        {copy.runningCheck}
         <span className="flex items-center gap-1 text-[9.5px] font-medium text-brand">
           <span className="grid size-3 place-items-center rounded-full border border-brand">
             <span className="size-1.5 rounded-full bg-brand" />
           </span>
-          Running
+          {copy.runningLabel}
         </span>
       </p>
     </MockWindow>
   );
 }
 
-function Launch() {
+function Launch({ copy }: { copy: ProcessVisualsCopy["launch"] }) {
   return (
     <div className="rounded-xl border border-line bg-surface p-3">
       <div className="flex items-center gap-3">
         <span className="grid size-10 place-items-center rounded-xl bg-linear-135 from-[#1e9bf0] to-[#1446e0] font-display text-[10px] font-bold tracking-[0.06em] text-white">
-          YS
+          {copy.appInitials}
         </span>
         <span>
-          <span className="block text-[12.5px] font-medium text-fg">Your Showroom</span>
-          <span className="block text-[10.5px] text-fg-muted">Shopping</span>
+          <span className="block text-[12.5px] font-medium text-fg">{copy.appName}</span>
+          <span className="block text-[10.5px] text-fg-muted">{copy.appCategory}</span>
         </span>
-        <span className="ml-auto rounded-full bg-primary px-3.5 py-1 text-[11px] font-medium text-white">Get</span>
+        <span className="ml-auto rounded-full bg-primary px-3.5 py-1 text-[11px] font-medium text-white">{copy.getLabel}</span>
       </div>
       {/* Store screenshots. */}
       <div className="mt-2.5 grid grid-cols-3 gap-1.5">
@@ -191,39 +197,48 @@ function Launch() {
         <span className="h-[72px] rounded-lg border border-line" />
       </div>
       <p className="mt-2.5 flex gap-1.5">
-        <Chip size="xs">Play Store</Chip>
-        <Chip size="xs">App Store</Chip>
-        <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-white">Live</span>
+        {copy.stores.map((store, index) => (
+          <Chip key={index} size="xs">
+            {store}
+          </Chip>
+        ))}
+        {copy.liveLabel.trim() && (
+          <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-white">{copy.liveLabel}</span>
+        )}
       </p>
     </div>
   );
 }
 
-function Support() {
+function Support({ copy }: { copy: ProcessVisualsCopy["support"] }) {
   return (
     <div className="flex flex-col gap-2.5 px-1 py-6">
       <p className="max-w-[78%] self-start rounded-xl rounded-bl-sm border border-line bg-surface-raised px-3 py-2 text-[11.5px] text-fg">
-        Can we add a festive banner to the app?
+        {copy.question}
       </p>
       <p className="max-w-[78%] self-end rounded-xl rounded-br-sm bg-primary px-3 py-2 text-[11.5px] text-white">
-        Done — it&apos;s live on Android and iOS.
+        {copy.answer}
       </p>
       <p className="flex items-center gap-2.5 self-start rounded-xl border border-line bg-surface px-2.5 py-2">
         <Check aria-hidden className="size-5 rounded-full bg-primary p-1 text-white" />
         <span className="text-[10.5px] font-medium text-fg">
-          Update shipped
-          <span className="block text-[9.5px] font-normal text-fg-muted">Support request closed</span>
+          {copy.doneTitle}
+          <span className="block text-[9.5px] font-normal text-fg-muted">{copy.doneText}</span>
         </span>
       </p>
     </div>
   );
 }
 
-export const PROCESS_VISUALS: Record<ProcessStepId, React.ReactNode> = {
-  discover: <Discover />,
-  design: <Design />,
-  build: <Build />,
-  test: <Test />,
-  launch: <Launch />,
-  support: <Support />,
-};
+/** The six illustrations drawn with the page's copy, keyed by step id. */
+/** The six drawings, in step order (steps 1–6; added steps reuse them in turn). */
+export function processVisuals(copy: ProcessVisualsCopy): React.ReactNode[] {
+  return [
+    <Discover key="discover" copy={copy.discover} />,
+    <Design key="design" copy={copy.design} />,
+    <Build key="build" copy={copy.build} />,
+    <Test key="test" copy={copy.test} />,
+    <Launch key="launch" copy={copy.launch} />,
+    <Support key="support" copy={copy.support} />,
+  ];
+}

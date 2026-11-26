@@ -33,7 +33,12 @@ export function pageMetadata(page: {
 
 const ORGANIZATION_ID = `${SITE.url}/#organization`;
 
-export function organizationJsonLd(site: SiteInfo = SITE, SERVICES: Service[] = BUNDLED_SERVICES): JsonLd {
+/** `logo`: the light logo from Site & menus (a site path or a Media Library URL). */
+export function organizationJsonLd(
+  site: SiteInfo = SITE,
+  SERVICES: Service[] = BUNDLED_SERVICES,
+  logo = "/brand/logo-light.png",
+): JsonLd {
   const SITE = site;
   return {
     "@context": "https://schema.org",
@@ -47,7 +52,7 @@ export function organizationJsonLd(site: SiteInfo = SITE, SERVICES: Service[] = 
         url: SITE.url,
         email: SITE.email,
         telephone: SITE.phone,
-        logo: `${SITE.url}/brand/logo-light.png`,
+        logo: logo.startsWith("/") ? `${SITE.url}${logo}` : logo,
         areaServed: ["IN", "Worldwide"],
         hasOfferCatalog: {
           "@type": "OfferCatalog",

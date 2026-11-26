@@ -1,21 +1,21 @@
 import { Check, Factory, House, type LucideIcon, Shield, Smartphone, Sparkles, Store, TrendingUp, Volume2 } from "lucide-react";
-import type { AudienceIcon } from "@/data/about";
-import type { ServiceId } from "@/data/services";
+import type { AudienceIcon, WingIconName } from "@/data/about";
 
 /** Line icons for the About page, from lucide-react. They inherit `currentColor`. */
 
 type IconProps = { className?: string };
 
-const WING_ICONS: Record<ServiceId, LucideIcon> = {
+const WING_ICONS: Record<WingIconName, LucideIcon> = {
   marketing: Volume2,
   apps: Smartphone,
   cad: House,
   software: Shield,
+  generic: Sparkles,
 };
 
-/** 21 px wing icon from the hero "What we do" panel. Services added in the admin share a generic icon. */
-export function WingIcon({ id, className }: IconProps & { id: string }) {
-  const Icon = WING_ICONS[id as ServiceId] ?? Sparkles;
+/** 21 px icon on a hero service card (picked per card in the admin). */
+export function WingIcon({ icon, className }: IconProps & { icon: string }) {
+  const Icon = WING_ICONS[icon as WingIconName] ?? Sparkles;
   return <Icon aria-hidden strokeWidth={1.6} className={className} />;
 }
 
@@ -26,9 +26,9 @@ const AUDIENCE_ICONS: Record<AudienceIcon, LucideIcon> = {
   growth: TrendingUp,
 };
 
-/** 22 px icon for the "Who we work with" cards. */
-export function AudienceGlyph({ icon, className }: IconProps & { icon: AudienceIcon }) {
-  const Icon = AUDIENCE_ICONS[icon];
+/** 22 px icon for the "Who we work with" cards (picked per card in the admin). */
+export function AudienceGlyph({ icon, className }: IconProps & { icon: string }) {
+  const Icon = AUDIENCE_ICONS[icon as AudienceIcon] ?? Store;
   return <Icon aria-hidden strokeWidth={1.6} className={className} />;
 }
 

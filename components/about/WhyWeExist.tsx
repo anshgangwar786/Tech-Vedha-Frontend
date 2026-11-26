@@ -4,7 +4,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { HIGHLIGHT, SECTION } from "@/components/ui/styles";
 import { cx } from "@/lib/cx";
 import { stepNumber } from "@/lib/utils";
-import { getAbout } from "@/server/content";
+import type { AboutContent } from "@/data/about";
 
 const headCell = "px-7 py-[22px] text-left text-[11px] font-medium tracking-[0.14em] uppercase";
 const dot = "size-1.5 shrink-0 rounded-full";
@@ -13,8 +13,7 @@ const dot = "size-1.5 shrink-0 rounded-full";
  * "Four vendors vs one team" comparison. A real table on wide screens; below `md` each row
  * stacks into a card, with small inline labels standing in for the hidden column headers.
  */
-export default async function WhyWeExist() {
-  const { VENDOR_COMPARISON, WHY_WE_EXIST: copy } = await getAbout();
+export default function WhyWeExist({ content: copy }: { content: AboutContent["whyWeExist"] }) {
   return (
     <section aria-labelledby="exist-title" className={cx("defer-render relative isolate bg-bg-deep", SECTION)}>
       <SectionGlow />
@@ -33,9 +32,7 @@ export default async function WhyWeExist() {
             className="absolute top-[60%] left-1/2 -z-10 h-[90%] w-[60%] rounded-[50%] bg-[radial-gradient(closest-side,#1e9bf0,#1446e0_55%,transparent)] opacity-20 blur-[60px] dark:opacity-35"
           />
           <table className="w-full border-collapse max-md:block">
-            <caption className="sr-only">
-              {copy.topicHeader}: {copy.vendorsHeader} / {copy.usHeader}
-            </caption>
+            <caption className="sr-only">{copy.a11y.tableCaption}</caption>
             <colgroup>
               <col className="w-[22%]" />
               <col className="w-[47%]" />
@@ -61,7 +58,7 @@ export default async function WhyWeExist() {
               </tr>
             </thead>
             <tbody className="max-md:block">
-              {VENDOR_COMPARISON.map((row, index) => (
+              {copy.rows.filter((row) => row.topic.trim()).map((row, index) => (
                 <tr key={index} className="border-line not-last:border-b max-md:block">
                   <th scope="row" className="px-7 py-[22px] text-left align-middle font-normal max-md:block max-md:px-5 max-md:pb-2">
                     <span className="block font-display text-[15px] leading-none font-light text-brand">
@@ -74,7 +71,7 @@ export default async function WhyWeExist() {
                       {copy.vendorsHeader}
                     </span>
                     <ul className="flex flex-wrap gap-2">
-                      {row.vendors.map((vendor, vendorIndex) => (
+                      {row.vendors.filter((vendor) => vendor.trim()).map((vendor, vendorIndex) => (
                         <li
                           key={vendorIndex}
                           className="flex h-8 items-center gap-[7px] rounded-[10px] border border-dashed border-line bg-surface-raised px-3 text-[13px] font-medium text-fg-muted"

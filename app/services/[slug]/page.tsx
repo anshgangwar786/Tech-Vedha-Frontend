@@ -40,16 +40,18 @@ export default async function ServicePage({ params }: ServicePageProps) {
   const page = await getServicePage((await params).slug);
   if (!page) notFound();
 
-  const { service } = page;
+  const { service, hero } = page;
   const path = `/services/${service.slug}`;
+  // The trail is the page's own copy; an emptied label drops that step.
+  const { breadcrumb } = hero;
   const trail: Crumb[] = [
-    { label: "Home", href: "/" },
-    { label: "Services", href: "/#services" },
-    { label: service.title },
-  ];
+    { label: breadcrumb.homeLabel, href: breadcrumb.homeHref || "/" },
+    { label: breadcrumb.servicesLabel, href: breadcrumb.servicesHref || undefined },
+    { label: breadcrumb.currentLabel },
+  ].filter((crumb) => crumb.label.trim());
   const structuredData = [
     serviceJsonLd({
-      name: service.title,
+      name: breadcrumb.currentLabel || page.seo.title,
       description: page.seo.description,
       path,
       offers: page.coverage.items.map((item) => item.title),
@@ -68,18 +70,13 @@ export default async function ServicePage({ params }: ServicePageProps) {
       {page.whyUs.points.length > 0 && <WhyUs page={page} />}
       {page.deliverables.cards.length > 0 && <Deliverables page={page} />}
       {page.useCases.items.length > 0 && <UseCases page={page} />}
-      <HowItWorks page={page} />
+      {page.process && page.process.tracks.length > 0 && <HowItWorks page={page} />}
       {page.techStack.groups.length > 0 && <TechStack page={page} />}
-      <Testimonials />
+      {page.stories.items.length > 0 && <Testimonials content={page.stories} initialFilter={page.stories.initialFilter} />}
       {page.faq.items.length > 0 && (
-        <Faq
-          title={page.faq.title}
-          items={page.faq.items}
-          group="service-faq"
-          className="lg:grid-cols-[483fr_725fr] lg:gap-[72px]"
-        />
+        <Faq content={page.faq} group="service-faq" className="lg:grid-cols-[483fr_725fr] lg:gap-[72px]" />
       )}
-      <Contact />
+      <Contact content={page.contact} />
     </>
   );
 }

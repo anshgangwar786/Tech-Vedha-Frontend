@@ -3,11 +3,10 @@ import HeadingStack from "@/components/ui/HeadingStack";
 import { DISPLAY_TITLE, INTRO, NUMBER, SECTION } from "@/components/ui/styles";
 import { cx } from "@/lib/cx";
 import { stepNumber } from "@/lib/utils";
-import { getAbout } from "@/server/content";
+import type { AboutContent } from "@/data/about";
 
 /** "Four things we always do": sticky heading beside a numbered list. */
-export default async function HowWeWork() {
-  const { PRINCIPLES, HOW_WE_WORK: copy } = await getAbout();
+export default function HowWeWork({ content: copy }: { content: AboutContent["howWeWork"] }) {
   return (
     <section aria-labelledby="principles-title" className={cx("defer-render relative isolate bg-bg", SECTION)}>
       <SectionGlow />
@@ -24,7 +23,7 @@ export default async function HowWeWork() {
         </div>
 
         <ol data-reveal-stagger>
-          {PRINCIPLES.map((principle, index) => (
+          {copy.points.filter((point) => point.title.trim()).map((principle, index) => (
             <li
               key={index}
               className="grid gap-x-8 gap-y-2 border-t border-line py-7 sm:grid-cols-[88px_1fr] sm:gap-y-3 sm:py-9"

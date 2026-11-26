@@ -3,20 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import ContactForm from "@/components/contact/ContactForm";
-import type { ContactFormCopy } from "@/data/contact";
-import type { Service } from "@/data/services";
-import type { EnquirySentCopy } from "@/lib/site";
+import type { ContactFormCopy } from "@/data/forms";
 
 /** Attribute that turns any link into a "Start a project" trigger (see ButtonLink's `startProject`). */
 export const START_PROJECT_ATTR = "data-start-project";
 
 type StartProjectModalProps = {
-  SERVICES: Service[];
-  TIMEFRAMES: string[];
   SITE: { email: string };
   WHATSAPP_URL: string;
-  copy: ContactFormCopy;
-  sentCopy: EnquirySentCopy;
+  /** The pop-up's own form copy (Site & menus → "Start a project" pop-up), with its close-button label. */
+  copy: ContactFormCopy & { a11y: { closeLabel: string } };
 };
 
 /**
@@ -24,7 +20,7 @@ type StartProjectModalProps = {
  * `data-start-project` opens it instead of navigating (the link's href stays as the no-JS fallback; Ctrl/Cmd-click
  * still opens the page in a new tab). Closes with the ✕ button, Escape, or a click on the backdrop.
  */
-export default function StartProjectModal(props: StartProjectModalProps) {
+export default function StartProjectModal({ SITE, WHATSAPP_URL, copy }: StartProjectModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
 
@@ -53,7 +49,7 @@ export default function StartProjectModal(props: StartProjectModalProps) {
   return (
     <dialog
       ref={ref}
-      aria-label={props.copy.title}
+      aria-label={copy.title}
       onCancel={(event) => {
         event.preventDefault();
         setOpen(false);
@@ -68,14 +64,14 @@ export default function StartProjectModal(props: StartProjectModalProps) {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          aria-label="Close form"
+          aria-label={copy.a11y.closeLabel}
           className="absolute top-4 right-4 z-10 grid size-10 place-items-center rounded-full border border-line bg-surface text-fg transition-colors duration-200 hover:border-brand hover:text-brand sm:top-6 sm:right-6"
         >
           <X aria-hidden className="size-5" />
         </button>
         {/* Stays mounted, so anything typed survives an accidental close. pr-12 keeps the title clear of the ✕. */}
         <div className="[&_form_h2]:pr-12">
-          <ContactForm {...props} />
+          <ContactForm SITE={SITE} WHATSAPP_URL={WHATSAPP_URL} copy={copy} />
         </div>
       </div>
     </dialog>

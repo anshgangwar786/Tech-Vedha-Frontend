@@ -46,7 +46,7 @@ export default function WhyUs({ page }: WhyUsProps) {
         <div className="flex flex-col items-center gap-[22px] text-center">
           <HeadingStack
             id="why-title"
-            eyebrow={page.labels.whyUs}
+            eyebrow={whyUs.eyebrow}
             eyebrowVariant="badge"
             title={whyUs.title}
             titleClassName={cx(DISPLAY_TITLE, "text-balance")}

@@ -1,13 +1,13 @@
 import Image from "next/image";
 import { Quote } from "lucide-react";
-import type { Story } from "@/data/home";
+import type { Story } from "@/data/stories";
 import { cx } from "@/lib/cx";
 import { BRAND_GRADIENT } from "@/components/ui/styles";
 
 function Author({ story, inverted }: { story: Story; inverted?: boolean }) {
   return (
     <footer className={cx("flex items-center gap-3 border-t pt-5", inverted ? "border-white/25" : "border-line")}>
-      {"avatar" in story && (
+      {story.avatar && (
         <Image
           src={story.avatar}
           alt=""
@@ -33,7 +33,8 @@ function Author({ story, inverted }: { story: Story; inverted?: boolean }) {
 }
 
 export default function StoryCard({ story }: { story: Story }) {
-  if (story.kind === "photo") {
+  // A photo card without a photo is shown as a plain quote card.
+  if (story.kind === "photo" && story.photo) {
     return (
       <figure className="overflow-hidden rounded-[20px] border border-line bg-surface">
         <div className="relative h-[340px] sm:h-[514px]">
@@ -58,7 +59,7 @@ export default function StoryCard({ story }: { story: Story }) {
         featured ? cx("border-transparent", BRAND_GRADIENT) : "border-line bg-surface",
       )}
     >
-      {story.kind === "stat" ? (
+      {story.kind === "stat" && story.stat ? (
         <p>
           <span className="block font-display text-[56px] leading-none font-light tracking-[-0.02em] text-brand">
             {story.stat}

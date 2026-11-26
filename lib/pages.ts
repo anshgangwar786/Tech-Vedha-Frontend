@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 import type { ResolvedServicePage } from "@/data/service-pages";
 
 /**
- * Every public page of the site, in one place. Drives both /sitemap.xml (for search engines)
- * and the /site-map page (for people). Add each new page here as it is built; service pages
- * are picked up automatically from data/service-pages.ts.
+ * Every public page of the site, for /sitemap.xml (search engines). The /site-map page for people takes its
+ * addresses from MAIN_PAGES, but its titles, descriptions and service cards are its own content (Site & menus →
+ * Sitemap page). Add each new page here as it is built; service pages are picked up from the catalogue.
  */
 export type SitePage = {
   title: string;
@@ -55,14 +55,3 @@ export const SITE_MAP_PAGE: SitePage = {
   changeFrequency: "monthly",
   priority: 0.3,
 };
-
-/** Homepage sections worth jumping to directly (ids live in components/home). */
-export const HOME_SECTIONS: { title: string; href: string }[] = [
-  { title: "Services", href: "/#services" },
-  { title: "Why Tech Vedha", href: "/#why" },
-  { title: "Security", href: "/#security" },
-  { title: "How we work", href: "/#process" },
-  { title: "Client stories", href: "/#work" },
-  { title: "FAQ", href: "/#faq" },
-  { title: "Start a project", href: "/#contact" },
-];

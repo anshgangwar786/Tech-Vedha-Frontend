@@ -3,37 +3,40 @@
 import Link from "next/link";
 import { useCallback, useId, useRef, useState } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { SERVICES as BUNDLED_SERVICES, countWord, serviceHref, type Service } from "@/data/services";
+import { countWord } from "@/data/services";
 import { useDismiss } from "@/hooks/useDismiss";
-import { withCount } from "@/data/home";
 import {
   EMAIL_URL as BUNDLED_EMAIL_URL,
   HEADER as BUNDLED_HEADER,
   SITE as BUNDLED_SITE,
   WHATSAPP_URL as BUNDLED_WHATSAPP_URL,
+  fillText,
   type HeaderCopy,
 } from "@/lib/site";
 import { cx } from "@/lib/cx";
 
 /** Desktop "Services" trigger with the mega menu (one column per service). */
 export default function ServicesMenu({
-  SERVICES = BUNDLED_SERVICES,
   SITE = BUNDLED_SITE,
   EMAIL_URL = BUNDLED_EMAIL_URL,
   WHATSAPP_URL = BUNDLED_WHATSAPP_URL,
   HEADER = BUNDLED_HEADER,
 }: {
-  SERVICES?: Service[];
   SITE?: { email: string };
   EMAIL_URL?: string;
   WHATSAPP_URL?: string;
   HEADER?: HeaderCopy;
 }) {
+  /** The menu's own list of services (Site & menus → Header). */
+  const SERVICES = HEADER.menuServices;
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const close = useCallback(() => setOpen(false), []);
   useDismiss(rootRef, open, close);
+
+  // No services in the drop-down (all removed in the admin): no "Services" button either.
+  if (SERVICES.length === 0) return null;
 
   return (
     <div ref={rootRef}>
@@ -58,13 +61,13 @@ export default function ServicesMenu({
           style={{ "--cols": SERVICES.length <= 5 ? SERVICES.length : Math.ceil(SERVICES.length / 2) } as React.CSSProperties}
           className="grid grid-cols-[repeat(var(--cols),minmax(0,1fr))] gap-8 px-8 pt-9 pb-8"
         >
-          {SERVICES.map((service) => (
-            <div key={service.id}>
+          {SERVICES.map((service, index) => (
+            <div key={`${index}-${service.title}`}>
               <p className="text-[11px] font-medium tracking-[0.12em] text-accent uppercase">
                 {service.number} · {service.wing}
               </p>
               <Link
-                href={serviceHref(service)}
+                href={service.href || "/"}
                 onClick={close}
                 className="mt-3 flex items-center gap-1 font-display text-xl text-fg hover:text-brand"
               >
@@ -72,8 +75,8 @@ export default function ServicesMenu({
                 <ArrowRight aria-hidden className="size-4 shrink-0" />
               </Link>
               <ul className="mt-6 flex flex-col gap-4">
-                {service.offerings.map((offering, index) => (
-                  <li key={index}>
+                {service.offerings.filter((offering) => offering.title.trim()).map((offering, offeringIndex) => (
+                  <li key={offeringIndex}>
                     <p className="text-sm font-medium text-fg">{offering.title}</p>
                     <p className="text-[13px] text-fg-subtle">{offering.detail}</p>
                   </li>
@@ -84,7 +87,7 @@ export default function ServicesMenu({
         </div>
         <div className="flex items-center justify-between border-t border-line px-8 py-4 text-sm">
           <p className="text-fg-muted">
-            {withCount(HEADER.servicesNote, countWord(SERVICES.length).toLowerCase())}{" "}
+            {fillText(HEADER.servicesNote, { count: countWord(SERVICES.length).toLowerCase() })}{" "}
             {HEADER.servicesLinkLabel.trim() && (
               <Link href={HEADER.servicesLinkHref || "/#why"} onClick={close} className="text-brand hover:underline">
                 {HEADER.servicesLinkLabel} →

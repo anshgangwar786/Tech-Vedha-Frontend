@@ -4,7 +4,7 @@ import { getContact } from "@/server/content";
 
 /** Thin band above the footer pointing visitors who already know what they want to the services. */
 export default async function ExploreBand() {
-  const { EXPLORE_BAND: copy } = await getContact();
+  const { exploreBand: copy } = await getContact();
   return (
     <aside className="border-y border-line bg-bg-deep py-[22px]">
       <p className="container-site flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm font-medium text-fg-muted">

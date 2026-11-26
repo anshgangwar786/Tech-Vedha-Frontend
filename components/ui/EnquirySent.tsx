@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import ButtonLink from "@/components/ui/ButtonLink";
-import { ENQUIRY_SENT, type EnquirySentCopy } from "@/lib/site";
+import { SENT_COPY, type SentCopy } from "@/data/forms";
 
 /** How long the confirmation stays up before the form is cleared for a new enquiry. */
 const RESET_AFTER_MS = 30_000;
@@ -48,13 +48,15 @@ export function useEnquirySent(onReset?: () => void) {
 export default function EnquirySent({
   open,
   onClose,
-  copy = ENQUIRY_SENT,
+  copy = SENT_COPY,
 }: {
   open: boolean;
   onClose: () => void;
-  /** Admin-edited text (Site & menus → Enquiry sent); bundled copy when omitted. */
-  copy?: EnquirySentCopy;
+  /** Admin-edited text and icon (each form's own "Enquiry sent" pop-up); bundled copy when omitted. */
+  copy?: SentCopy;
 }) {
+  // Image addresses are checked on the server (server/content.ts), so any saved icon is safe here.
+  const icon = copy.icon?.src ? copy.icon : SENT_COPY.icon;
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export default function EnquirySent({
       className="m-auto w-[calc(100%-2.5rem)] max-w-[520px] overflow-visible bg-transparent p-0 text-fg backdrop:bg-bg-deep/70 backdrop:backdrop-blur-sm open:animate-scene-in"
     >
       <div className="flex flex-col items-center gap-5 rounded-[28px] border border-line bg-surface px-6 pt-10 pb-9 text-center shadow-[0_40px_80px_-20px_rgb(3_10_23/0.25)] sm:px-10 dark:shadow-[0_40px_80px_-20px_rgb(3_10_23/0.6)]">
-        <Image src="/icons/success.svg" alt="" width={64} height={64} className="size-16" />
+        <Image src={icon.src} alt={icon.alt} width={icon.width || 64} height={icon.height || 64} className="size-16 object-contain" />
         <h2 id="enquiry-sent-title" className="font-display text-[40px] leading-tight font-light text-fg">
           {copy.title}
         </h2>
@@ -89,7 +91,7 @@ export default function EnquirySent({
           {copy.text}
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <ButtonLink href="/" className="shadow-none">
+          <ButtonLink href={copy.homeHref || "/"} className="shadow-none">
             {copy.homeLabel}
           </ButtonLink>
           <button

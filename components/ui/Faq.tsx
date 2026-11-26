@@ -5,12 +5,20 @@ import HeadingStack from "@/components/ui/HeadingStack";
 import { SECTION_TIGHT } from "@/components/ui/styles";
 import { cx } from "@/lib/cx";
 import { revealDelay } from "@/lib/utils";
-import { getHome, getSite } from "@/server/content";
+import { getSite } from "@/server/content";
+
+/** A page's FAQ section: each page keeps its own (home.faq, about.faq, a service page's faq). */
+export type FaqContent = {
+  eyebrow: string;
+  /** A list puts each entry on its own line at desktop widths. */
+  title: string | string[];
+  helpTitle: string;
+  helpText: string;
+  items: readonly { question: string; answer: string }[];
+};
 
 type FaqProps = {
-  /** A string array puts each entry on its own line at desktop widths. */
-  title?: string | string[];
-  items?: readonly { question: string; answer: string }[];
+  content: FaqContent;
   /** Name shared by the <details> items, making them a single-open accordion. */
   group?: string;
   /** Desktop column template and gap. */
@@ -23,13 +31,13 @@ type FaqProps = {
  * same items as FAQPage structured data.
  */
 export default async function Faq({
-  title: titleProp,
-  items: itemsProp,
+  content: faq,
   group = "faq",
   className = "lg:grid-cols-[380px_1fr] lg:gap-[176px]",
 }: FaqProps) {
-  const [{ WHATSAPP_URL }, { faq }] = await Promise.all([getSite(), getHome()]);
-  const items = itemsProp ?? faq.items;
+  // The WhatsApp number is a contact setting (Site & menus); everything the section says is the page's own.
+  const { WHATSAPP_URL } = await getSite();
+  const items = faq.items.filter((item) => item.question.trim());
   return (
     <section id="faq" aria-labelledby="faq-title" className={cx("defer-render bg-bg-deep", SECTION_TIGHT)}>
       <div className={cx("container-site grid gap-8 sm:gap-12", className)}>
@@ -37,7 +45,7 @@ export default async function Faq({
           <HeadingStack
             id="faq-title"
             eyebrow={faq.eyebrow}
-            title={titleProp ?? faq.title}
+            title={faq.title}
             titleClassName="font-display text-[clamp(2.5rem,5vw,4.25rem)] leading-[1.03] tracking-[-0.028em] text-balance text-fg"
           />
           <Link
@@ -55,7 +63,7 @@ export default async function Faq({
 
         <ul data-reveal-stagger className="flex flex-col gap-2.5">
           {items.map((item, index) => (
-            <li key={item.question}>
+            <li key={`${index}-${item.question}`}>
               <Disclosure
                 group={group}
                 defaultOpen={index === 0}

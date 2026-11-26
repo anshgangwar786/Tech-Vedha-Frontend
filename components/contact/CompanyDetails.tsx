@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Glyph } from "@/components/contact/icons";
 import SectionHeading from "@/components/contact/SectionHeading";
 import { BRAND_GRADIENT, MICRO, SECTION_TIGHT } from "@/components/ui/styles";
@@ -43,21 +44,10 @@ function StreetMap() {
   );
 }
 
-/** Two-letter badge from the office name ("Tech Vedha office" → "TV"). */
-function initials(name: string) {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word) => word[0].toUpperCase())
-      .join("") || "•"
-  );
-}
-
 /** "Find us, and everything procurement needs": office map, office card and registration details. */
 export default async function CompanyDetails() {
-  const { COMPANY, DIRECTIONS_URL, COMPANY_SECTION: copy } = await getContact();
+  const { company: copy } = await getContact();
+  const COMPANY = copy;
   const { WHATSAPP_URL } = await getSite();
   return (
     <section aria-labelledby="company-title" className={cx("defer-render bg-bg", SECTION_TIGHT)}>
@@ -74,14 +64,20 @@ export default async function CompanyDetails() {
 
         <div className="mt-10 grid items-start gap-4 sm:mt-14 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
           <div data-reveal="left" className="reveal relative isolate h-[300px] overflow-hidden rounded-3xl border border-line bg-[#eef4fc] sm:h-[440px] dark:bg-surface">
-            <StreetMap />
+            {copy.mapImage.src ? (
+              // An uploaded map picture (Contact → Office and company details) replaces the drawn street map.
+              <Image src={copy.mapImage.src} alt={copy.mapImage.alt} fill sizes="(min-width: 1024px) 760px, 100vw" className="object-cover" />
+            ) : (
+              <StreetMap />
+            )}
+            {copy.mapPinTitle.trim() && (
             <div className="absolute top-[19.5%] left-1/2 flex -translate-x-1/2 flex-col items-center gap-2.5">
               <p className="flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-2.5 drop-shadow-[0_30px_30px_rgb(20_70_224/0.25)] dark:drop-shadow-[0_30px_30px_rgb(0_0_0/0.6)]">
                 <span
                   aria-hidden
                   className={cx("grid size-[30px] place-items-center rounded-lg font-display text-[10px] font-semibold tracking-[0.05em] text-white", BRAND_GRADIENT)}
                 >
-                  {initials(copy.mapPinTitle)}
+                  {copy.mapPinBadge}
                 </span>
                 <span className="flex min-w-28 flex-col whitespace-nowrap">
                   <span className="text-[13px] font-medium text-fg">{copy.mapPinTitle}</span>
@@ -95,8 +91,9 @@ export default async function CompanyDetails() {
                 <Glyph name="pin" className="size-5" />
               </span>
             </div>
+            )}
             <a
-              href={DIRECTIONS_URL}
+              href={copy.directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="absolute bottom-5 left-5 flex h-11 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-medium text-fg transition-colors duration-250 hover:border-brand sm:bottom-[26px] sm:left-6 sm:h-10"

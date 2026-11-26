@@ -99,21 +99,42 @@ Guards that catch a wrong production config:
 One JSON document per key in table `jmt_site_pages`. Same keys and locked paths on both sides:
 admin: `app/lib/content/site-pages.ts` ↔ web: `lib/content/registry.ts`.
 
+Every page owns ALL of its content: nothing a visitor reads on one page comes from another page's document. Pages
+that show the same kind of section (FAQ, "Let's talk" + enquiry form, client stories, service names) each keep their
+own copy, so each can be edited on its own. Only contact SETTINGS (email, phone, WhatsApp number) are site-wide.
+
 ```
 key                 admin editor                              web getter (server/content.ts)  pages using it
-├─ site             /dashboard/site-pages/site                getSite()          every page (layout, header, footer, logo,
-│                                                                                 Organization JSON-LD, CTAs, contact links)
-├─ home             /dashboard/site-pages/home                getHome()          /, /about (FAQ),
-│                                                                                 /services/* (client stories; process
-│                                                                                 steps when the page has none)
-├─ about            /dashboard/site-pages/about               getAbout()         /about
-├─ contact          /dashboard/site-pages/contact             getContact()       /contact (+ email/phone from site)
-├─ services         /dashboard/site-pages/services            getServices()      layout (header, footer, Organization
-│                                                                                 JSON-LD), /, /about, /contact,
-│                                                                                 /services/*, /site-map, forms
-├─ service-apps     /dashboard/site-pages/service-apps        getServicePage()   /services/app-development
-└─ service-marketing /dashboard/site-pages/service-marketing  getServicePage()   /services/digital-marketing
+├─ site             /dashboard/site-pages/site                getSite()          layout chrome on every page: SEO defaults,
+│                                                                                 skip link, logo, header + Services menu,
+│                                                                                 "Start a project" pop-up, footer, 404,
+│                                                                                 /site-map; contact settings
+├─ home             /dashboard/site-pages/home                getHome()          / only
+├─ about            /dashboard/site-pages/about               getAbout()         /about only
+├─ contact          /dashboard/site-pages/contact             getContact()       /contact only (+ contact settings from site)
+├─ services         /dashboard/site-pages/services            getServices()      routing only: which /services/<slug> pages
+│                                                                                 exist; names for search-engine JSON-LD
+├─ service-apps     /dashboard/site-pages/service-apps        getServicePage()   /services/app-development only
+├─ service-marketing /dashboard/site-pages/service-marketing  getServicePage()   /services/digital-marketing only
+└─ service-<slug>   /dashboard/site-pages/service-<slug>      getServicePage()   /services/<slug> (services added in the admin)
 ```
+
+Each page's bundled copy, locked paths and list templates live in its own data file (web: `data/home.ts`,
+`data/about.ts`, `data/contact.ts`, `data/service-pages.ts`, `data/custom-service-pages.ts`, `data/services.ts`,
+`lib/site.ts`); the admin's editor definition lives in `admin: app/lib/content/site-page-defs/<page>.ts`, with its
+cards (`sections`) in page order, top to bottom. Starter copies shared by several pages are copied, never referenced:
+`web: data/forms.ts` (enquiry forms, incl. validation messages and the "Enquiry sent" pop-up) and `web: data/stories.ts`.
+
+New service pages (Service catalogue → Added services) start as **drafts**: anyone with "Edit website pages" can build
+them and check them with Preview; only users with **"Publish new service pages"** (`pages.publish`: the Super Admin, or
+a role they tick it for in Roles) can put one live, take it offline, or rename / remove a live one. The admin enforces
+this on save (`admin: app/lib/server/servicePublishing.ts`, `PUT /api/site-pages/services`) and offers a Publish button
+on the page editor (`POST /api/site-pages/publish`). The website only shows a published page (or a draft in Preview).
+
+Images: every image on a page is an image field (`{ src, alt, width, height }`, or a path string for story
+avatars/photos). In the editor, the **Images** tab lists every image of the page, section by section, with Upload and
+Media Library. `web: server/content.ts → guardImages` resets any image whose address is not a site path or a
+MEDIA_HOSTNAMES URL to the bundled one.
 
 Per key, the link is:
 
@@ -136,12 +157,10 @@ enforced by mergeContent on both sides, not only by the editor):
 
 | Key | Locked |
 |---|---|
-| `site` | `sitemapPage.pages[].path`, `sitemapPage.homeSections[].href` |
-| `home` | `processSteps[].id`, `stories[].id`, `stories[].kind` |
-| `about` | `audiences[].icon`, `loopSteps[].service` |
-| `contact` | `quickContacts[].icon`, `channels[].icon` |
+| `site` | `sitemapPage.pages[].path` (the cards point at real pages) |
+| `home`, `about`, `contact` | — (nothing locked: every list can be added to, deleted from and reordered) |
 | `services` | `items[].id`, `items[].slug` |
-| `service-apps`, `service-marketing` | `id`, `coverage.items[].icon`, `whyUs.icon`, `deliverables.cards[].visual`, `deliverables.cards[].href`, `useCases.items[].icon`, `process.tracks[].id`, `techStack.groups[].tools` |
+| `service-apps`, `service-marketing`, `service-<slug>` | `id` |
 
 Defaults: admin `data/siteContentDefaults.json` is **generated** from web `lib/content/registry.ts`
 by `npm run sync:defaults` (admin). Run it after any change to web `data/` or `lib/site.ts`.
@@ -190,7 +209,7 @@ Enquiries → Leads
 Media
 ├─ admin: /dashboard/media → FTPS upload to HOSTINGER_MEDIA_PATH → URL HOSTINGER_MEDIA_URL/<file>
 └─ web: an image field accepts a site path (/home/…) or https on MEDIA_HOSTNAMES; anything else →
-        bundled image (server/content.ts → getHome stories avatar/photo)
+        bundled image (server/content.ts → guardImages, every page)
 
 Manual cache controls (admin)
 ├─ "Revalidate Cache" on an editor  → POST /api/revalidate      → that screen's tags
@@ -264,8 +283,12 @@ Preview opens the page with the unsaved change. A test enquiry appears in Leads 
 
 - **Share-image alt text uses the bundled brand copy**: the manifest, favicon monogram and share images read
   Site & menus live, but the share images' `alt` text is fixed at build time from web `lib/site.ts`.
-- **Every visible word is an admin field**, except screen-reader-only labels, the drawn mock-ups inside
-  illustrations (service scenes, process and security visuals) and the tool logos on service pages.
+- **Every visible word is an admin field**, including screen-reader labels (`<section>.a11y`) and the words inside
+  the drawn mock-ups. Not editable: decorative shapes in illustrations, decorative arrows/glyphs, tool logos on
+  service pages (code icons; their names are editable), fallbacks used when a field is left empty, and the
+  spam-trap field label (never shown).
+- **Adding a service** creates its page; showing it elsewhere (header menu, footer, homepage, About, form choices,
+  /site-map) means adding it on each of those pages, because no page reads another page's content.
 - **Previews and the per-IP lead limit are in memory**: on serverless or multi-instance hosting they are per
   instance. The per-email/phone limit is in MySQL and always applies.
 - **The preview tab does not refresh itself**: reload it to see edits made after opening it.

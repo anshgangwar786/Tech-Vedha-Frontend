@@ -4,7 +4,8 @@ import { Moon, Sun } from "lucide-react";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 /** Flips <html data-theme> and remembers the choice. Icons swap via CSS, so server and client markup match. */
-export default function ThemeToggle() {
+/** `label`: screen-reader name of the button (Site & menus → Header). */
+export default function ThemeToggle({ label = "Toggle light and dark theme" }: { label?: string }) {
   const toggle = () => {
     const root = document.documentElement;
     const next = root.dataset.theme === "light" ? "dark" : "light";
@@ -20,7 +21,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label="Toggle light and dark theme"
+      aria-label={label}
       className="grid size-10 place-items-center rounded-full border border-line text-fg transition-colors hover:border-brand"
     >
       <Sun aria-hidden className="hidden size-[17px] dark:block" />

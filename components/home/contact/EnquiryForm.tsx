@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { sendEnquiry, type EnquiryResult } from "@/app/actions/enquiry";
-import { CONTACT_SECTION, type EnquiryFormCopy } from "@/data/home";
-import { SERVICES as BUNDLED_SERVICES, type Service } from "@/data/services";
-import { SITE as BUNDLED_SITE, type EnquirySentCopy } from "@/lib/site";
+import { ENQUIRY_FORM_COPY, type EnquiryFormCopy } from "@/data/forms";
+import { SITE as BUNDLED_SITE } from "@/lib/site";
 import { mailtoHref } from "@/lib/utils";
 import EnquirySent, { useEnquirySent } from "@/components/ui/EnquirySent";
 import { Honeypot } from "@/components/ui/Honeypot";
@@ -23,23 +22,19 @@ const field =
  * Every field is checked before sending (lib/formValidation.ts), with the message shown under the field.
  */
 export default function EnquiryForm({
-  SERVICES = BUNDLED_SERVICES,
   SITE = BUNDLED_SITE,
-  copy = CONTACT_SECTION.form,
-  sentCopy,
+  copy = ENQUIRY_FORM_COPY,
 }: {
-  /** Live content from the admin (bundled copy when omitted). */
-  SERVICES?: Service[];
   SITE?: { email: string };
-  /** Field labels and button text (admin: Homepage → Contact → Form). */
+  /** Labels, service choices, messages and the "Enquiry sent" pop-up: the page's own copy (admin: that page → Contact). */
   copy?: EnquiryFormCopy;
-  /** "Enquiry sent" pop-up text (admin: Site & menus). */
-  sentCopy?: EnquirySentCopy;
 }) {
   const sent = useEnquirySent();
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-  const { errors, validateForm, formHandlers, fieldProps, errorId, clear, show } = useFieldErrors(validateHomepageEnquiry);
+  const messages = copy.validation;
+  const validate = useCallback((data: FormData) => validateHomepageEnquiry(data, messages), [messages]);
+  const { errors, validateForm, formHandlers, fieldProps, errorId, clear, show } = useFieldErrors(validate);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,17 +65,17 @@ export default function EnquiryForm({
         show(result.fieldErrors);
         focusFirstError(form, result.fieldErrors);
       }
-      setError(result.message || "Please check your details and try again.");
+      setError(result.message || copy.errorMessage);
       return;
     }
     const value = (key: string) => String(data.get(key) ?? "").trim();
 
-    const subject = `Project enquiry${value("service") ? ` — ${value("service")}` : ""}`;
+    const subject = `${copy.emailSubject}${value("service") ? ` — ${value("service")}` : ""}`;
     const body = [
-      `Name: ${value("name")}`,
-      `Phone / WhatsApp: ${value("phone")}`,
-      `Email: ${value("email")}`,
-      `Service: ${value("service") || "Not sure yet"}`,
+      `${copy.nameLabel}: ${value("name")}`,
+      `${copy.phoneLabel}: ${value("phone")}`,
+      `${copy.emailLabel}: ${value("email")}`,
+      `${copy.serviceLabel}: ${value("service") || copy.emailNoService}`,
       "",
       value("message"),
     ].join("\n");
@@ -94,7 +89,7 @@ export default function EnquiryForm({
       <form
         onSubmit={onSubmit}
         {...formHandlers}
-        aria-label="Project enquiry"
+        aria-label={copy.formLabel}
         data-reveal="right"
         className="reveal @container rounded-3xl border border-line bg-glass p-5 backdrop-blur-xl sm:p-9"
       >
@@ -118,7 +113,7 @@ export default function EnquiryForm({
               required
               maxLength={16}
               autoComplete="tel"
-              defaultValue="+91 "
+              defaultValue={copy.phonePrefill}
               placeholder={copy.phonePlaceholder}
               onInput={(e) => {
                 const clean = cleanPhoneInput(e.currentTarget.value);
@@ -143,9 +138,9 @@ export default function EnquiryForm({
             <span className="relative">
               <select name="service" defaultValue="" className={`${field} h-12 appearance-none pr-10`}>
                 <option value="">{copy.servicePlaceholder}</option>
-                {SERVICES.map((service) => (
-                  <option key={service.id} value={service.title}>
-                    {service.title}
+                {[...new Set(copy.serviceOptions.map((option) => option.trim()).filter(Boolean))].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
                   </option>
                 ))}
               </select>
@@ -180,12 +175,12 @@ export default function EnquiryForm({
             aria-disabled={sending}
             className="mt-1 inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-primary text-base font-medium text-white transition hover:brightness-110 @md:col-span-2"
           >
-            {copy.submitLabel || "Send enquiry"}
+            {copy.submitLabel}
             <ArrowRight aria-hidden className="size-4" />
           </button>
         </div>
       </form>
-      <EnquirySent open={sent.open} onClose={sent.close} copy={sentCopy} />
+      <EnquirySent open={sent.open} onClose={sent.close} copy={copy.sent} />
     </>
   );
 }

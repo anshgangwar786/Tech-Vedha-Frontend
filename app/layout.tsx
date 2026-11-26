@@ -5,11 +5,13 @@ import Header from "@/components/layout/Header";
 import ScrollReveal from "@/components/layout/ScrollReveal";
 import StartProjectModal from "@/components/contact/StartProjectModal";
 import { jsonLdScript, organizationJsonLd } from "@/lib/seo";
-import { SITE as BUNDLED_SITE } from "@/lib/site";
+import { SITE as BUNDLED_SITE, fillText } from "@/lib/site";
 import { REVEAL_BOOT_SCRIPT, THEME_BOOT_SCRIPT } from "@/lib/theme";
 import { CustomScripts, Gtm, GtmNoscript, JsonLd, trackingEnabled } from "@/components/seo/SeoTags";
-import { getContact, getServices, getSite } from "@/server/content";
+import { getServices, getSite } from "@/server/content";
 import { getSeoConfig } from "@/server/seo";
+import PreviewBar from "@/components/preview/PreviewBar";
+import { getPreviewToken } from "@/lib/preview";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -29,26 +31,20 @@ const cousine = Cousine({ subsets: ["latin"], weight: "400", variable: "--font-c
 export const revalidate = 600;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { SITE } = await getSite();
+  const { SITE, SEO } = await getSite();
   return {
     metadataBase: new URL(BUNDLED_SITE.url),
     title: {
-      default: `${SITE.name} — IT Solutions for Marketing, Apps, CAD and Software`,
-      template: `%s | ${SITE.name}`,
+      default: SEO.defaultTitle.trim() || SITE.name,
+      // "%s" is Next.js's slot for the page's own title.
+      template: fillText(SEO.titleTemplate.includes("{title}") ? SEO.titleTemplate : "{title} | {name}", {
+        title: "%s",
+        name: SITE.name,
+      }),
     },
     description: SITE.description,
     applicationName: SITE.name,
-    keywords: [
-      "IT solutions",
-      "digital marketing agency",
-      "app development company",
-      "Android and iOS app development",
-      "CAD design and planning",
-      "BOQ",
-      "custom software",
-      "cybersecurity",
-      "India",
-    ],
+    keywords: SEO.keywords.map((keyword) => keyword.trim()).filter(Boolean),
     openGraph: {
       type: "website",
       siteName: SITE.name,
@@ -71,10 +67,11 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [{ SITE, WHATSAPP_URL, ENQUIRY_SENT }, SERVICES, { TIMEFRAMES, FORM }, seo, tracking] = await Promise.all([
+  // The catalogue is read only for search engines (Organization structured data); nothing visible comes from it.
+  const previewing = Boolean(await getPreviewToken());
+  const [{ SITE, WHATSAPP_URL, SKIP_LINK, PROJECT_FORM, LOGO }, SERVICES, seo, tracking] = await Promise.all([
     getSite(),
     getServices(),
-    getContact(),
     getSeoConfig(),
     trackingEnabled(),
   ]);
@@ -92,7 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT + REVEAL_BOOT_SCRIPT }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd(SITE, SERVICES))} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd(SITE, SERVICES, LOGO.light.src))} />
         {/* Site-wide schema from Tech-Vedha-Admin → SEO & Scripts (server/seo.ts). */}
         <JsonLd data={seo.global.schemas} />
       </head>
@@ -109,7 +106,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           href="#main"
           className="fixed top-3 left-3 z-[60] -translate-y-[200%] rounded-full bg-primary px-4 py-2.5 font-medium text-white transition-transform focus-visible:translate-y-0"
         >
-          Skip to content
+          {SKIP_LINK}
         </a>
         {/* Reading-progress line (CSS scroll timeline). */}
         <div
@@ -120,15 +117,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main id="main">{children}</main>
         <Footer />
         <ScrollReveal />
+        {/* Editors previewing unsaved changes see a bar with "Exit preview"; visitors never do. */}
+        {previewing && <PreviewBar />}
         {/* "Start a project" popup, opened by any link marked data-start-project. */}
-        <StartProjectModal
-          SERVICES={SERVICES}
-          TIMEFRAMES={TIMEFRAMES}
-          SITE={SITE}
-          WHATSAPP_URL={WHATSAPP_URL}
-          copy={FORM}
-          sentCopy={ENQUIRY_SENT}
-        />
+        <StartProjectModal SITE={SITE} WHATSAPP_URL={WHATSAPP_URL} copy={PROJECT_FORM} />
       </body>
     </html>
   );

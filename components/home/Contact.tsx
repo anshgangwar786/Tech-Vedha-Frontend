@@ -2,10 +2,23 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Eyebrow from "@/components/ui/Eyebrow";
 import EnquiryForm from "@/components/home/contact/EnquiryForm";
-import { getHome, getServices, getSite } from "@/server/content";
+import type { EnquiryFormCopy } from "@/data/forms";
+import { getSite } from "@/server/content";
 
-export default async function Contact() {
-  const [{ EMAIL_URL, SITE, WHATSAPP_URL, ENQUIRY_SENT }, SERVICES, { contact }] = await Promise.all([getSite(), getServices(), getHome()]);
+/** A page's "Let's talk" block and its enquiry form: each page keeps its own (home.contact, about.contact, …). */
+export type ContactSectionContent = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  emailLabel: string;
+  whatsappLabel: string;
+  whatsappValue: string;
+  form: EnquiryFormCopy;
+};
+
+export default async function Contact({ content: contact }: { content: ContactSectionContent }) {
+  // Email address and WhatsApp number are contact settings (Site & menus); the words are the page's own.
+  const { EMAIL_URL, SITE, WHATSAPP_URL } = await getSite();
   const CONTACT_LINKS = [
     { label: contact.emailLabel, value: SITE.email, href: EMAIL_URL },
     { label: contact.whatsappLabel, value: contact.whatsappValue, href: WHATSAPP_URL },
@@ -43,7 +56,7 @@ export default async function Contact() {
             ))}
           </ul>
         </div>
-        <EnquiryForm SERVICES={SERVICES} SITE={SITE} copy={contact.form} sentCopy={ENQUIRY_SENT} />
+        <EnquiryForm SITE={SITE} copy={contact.form} />
       </div>
     </section>
   );

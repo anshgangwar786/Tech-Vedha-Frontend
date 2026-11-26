@@ -2,13 +2,13 @@ import Marquee from "@/components/home/Marquee";
 import MarqueePauseButton from "@/components/home/MarqueePauseButton";
 import CtaButtons from "@/components/ui/CtaButtons";
 import Eyebrow from "@/components/ui/Eyebrow";
-import { getHome, getServices } from "@/server/content";
+import { getHome } from "@/server/content";
 
 const SECTION_ID = "why-marquee";
 
 export default async function WhyTechVedha() {
   const { why } = await getHome();
-  const SERVICE_WORDS = (await getServices()).flatMap((service) => service.short);
+  const SERVICE_WORDS = why.marqueeWords.filter((word) => word.trim());
   return (
     <section
       id={SECTION_ID}
@@ -22,7 +22,7 @@ export default async function WhyTechVedha() {
       <Eyebrow variant="centered">{why.eyebrow}</Eyebrow>
 
       <div className="mt-8 sm:mt-12">
-        <Marquee items={SERVICE_WORDS} tone="outline" duration={70} />
+        <Marquee items={SERVICE_WORDS} tone="outline" duration={70} reverse={why.marqueeDirection === "left-to-right"} />
       </div>
 
       <div data-reveal-stagger className="container-site mt-8 flex flex-col items-center text-center sm:mt-12">
@@ -44,11 +44,11 @@ export default async function WhyTechVedha() {
       </div>
 
       <div className="mt-8 sm:mt-12">
-        <Marquee items={why.promises} tone="gradient" duration={45} reverse />
+        <Marquee items={why.promises.filter((word) => word.trim())} tone="gradient" duration={45} reverse={why.promisesDirection !== "right-to-left"} />
       </div>
 
       <div className="container-site mt-6 flex justify-end sm:mt-8">
-        <MarqueePauseButton targetId={SECTION_ID} />
+        <MarqueePauseButton targetId={SECTION_ID} pauseLabel={why.a11y.pauseLabel} playLabel={why.a11y.playLabel} />
       </div>
     </section>
   );
